@@ -42,6 +42,13 @@ conda create -n {NAME} python=3.11
 conda activate {NAME}
 ```
 
+You can check which pip you're using by running the command on Linux or Mac:
+```bash
+which pip
+```
+
+**NB - MAKE SURE YOU HAVE THE CORRECT ENVIRONMENT FOR THE CORRECT PROBLEM, ELSE IT WILL BE TANGLES**
+
 You can always change or deactivate by using
 
 ```bash
