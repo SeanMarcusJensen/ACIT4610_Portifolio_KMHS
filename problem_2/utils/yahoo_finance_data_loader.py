@@ -2,6 +2,31 @@ import yfinance as fy
 import datetime
 import pandas as pd
 import os
+from currency_converter import CurrencyConverter
+
+class Company:
+    default_valuta = 'USD'
+    valuta_converter = CurrencyConverter()
+
+    def __init__(self, ticker: fy.Ticker, history_func) -> None:
+        self.__ticker = ticker
+        self.data_frame = history_func(ticker)
+        ticker_currency = self.__ticker.info['currency'] if 'currency' in self.__ticker.info else self.default_valuta
+
+        self.data_frame['Ticker'] = ticker.ticker
+        self.data_frame['Open'] = self.data_frame['Open'].apply(lambda x: self.valuta_converter.convert(x, ticker_currency, self.default_valuta))
+        self.data_frame['High'] = self.data_frame['High'].apply(lambda x: self.valuta_converter.convert(x, ticker_currency, self.default_valuta))
+        self.data_frame['Low'] = self.data_frame['Low'].apply(lambda x: self.valuta_converter.convert(x, ticker_currency, self.default_valuta))
+        self.data_frame['Close'] = self.data_frame['Close'].apply(lambda x: self.valuta_converter.convert(x, ticker_currency, self.default_valuta))
+
+    def as_dataframe(self) -> pd.DataFrame:
+        """ Get the data as a DataFrame. """
+        return self.history
+
+    def __getitem__(self, key: str) -> pd.DataFrame:
+        """ Get the data for a specific ticker. """
+        return self.history[key]
+
 
 class TickerManager:
 
@@ -13,7 +38,7 @@ class TickerManager:
                  start: datetime.datetime,
                  end: datetime.datetime,
                  interval: str = '1d') -> None:
-        """ Create a FinanceManager object.
+        """ Create a TickerManager object.
 
         Args:
             tickers (list[str]): A list of tickers to be used.
@@ -28,71 +53,35 @@ class TickerManager:
         if interval not in self.__accepted_intervals:
             raise ValueError(f'Interval \'{interval}\' not accepted. Accepted intervals are: {self.__accepted_intervals}')
 
-        self.start_date = start
-        self.end_date = end
-        self.interval = interval
-
         loaded = fy.Tickers(tickers)
-        self.companies: dict[str, fy.Ticker] = loaded.tickers
-
-        self.get_history = lambda ticker: self.companies[ticker].history(period=self.interval, start=self.start_date, end=self.end_date)
+        self.companies: dict[str, Company] = {}
+        for k in loaded.tickers.keys():
+            self.companies[k] = Company(loaded.tickers[k], lambda x: x.history(period=interval, start=start, end=end))
 
     def get_stock_history(self) -> pd.DataFrame:
         """ Get the stock history for a specific ticker. """
         data = pd.DataFrame()
-        for k, v in self.companies.items():
-            ticker = self.get_history(k)
-            ticker['Ticker'] = k
-            data = pd.concat([data, ticker], axis=0)
+        for v in self.companies.values():
+            data = pd.concat([data, v.as_dataframe()], axis=0)
         return data
     
     def get_ticker_count(self) -> int:
         """ Get the number of tickers. """
         return len(self.companies.keys())
+    
+    def save_to_csv(self, path: str) -> None:
+        """ Save the data to a CSV file. """
+        data = self.get_stock_history()
+        data.to_csv(path)
 
     def __getitem__(self, key: str) -> pd.DataFrame:
         """ Get the data for a specific ticker. """
-        if key in self.companies.keys():
-            return self.get_history(key)
-        else:
-            raise KeyError(f'Ticker {key} not found in the data.')
+        return self.companies[key].as_dataframe()
 
-class FinanceManager:
-    """ Class to manage the finance data from Yahoo Finance.
-        Args:
-            data (pandas.DataFrame): The finance data.
-    """
 
-    def __init__(self, data: pd.DataFrame, loader: 'FinanceLoader' = None) -> None:
-        """ Create a FinanceManager object.
-
-        Args:
-            tickers (list[str]): A list of tickers to be used.
-            start (datetime.datetime): Start date to get the data from.
-            end (datetime.datetime): End date to get the data from.
-            interval (str, optional): _description_. Defaults to '1d'.
-
-        Raises:
-            ValueError: The interval is not accepted.
-        """
-        self.finance_data = data
-        self.loader = loader
-
-    def as_dataframe(self) -> pd.DataFrame:
-        """ Get the data as a DataFrame. """
-        return self.finance_data
-    
-    def __getitem__(self, key: str) -> fy.Ticker:
-        """ Get the data for a specific ticker. """
-        if key in self.companies.keys():
-            return self.companies[key]
-        else:
-            raise KeyError(f'Ticker {key} not found in the data.')
-
-    def get_ticker_count(self) -> int:
-        """ Get the number of tickers. """
-        return len(self.finance_data['Ticker'].unique())
-
+""" THIS SECTION IS A SIMPLE DOWNLOADER FOR THE DATA.
+MIGHT NOT NEED TO DO THIS, SINCE WE CAN JUST USE HTTP!
+"""
 
 class FinanceLoader:
     """ Class to load the finance data from Yahoo Finance.
@@ -129,7 +118,7 @@ class FinanceLoader:
         self.interval = interval
         self.storage_path = None
     
-    def download(self, path: str) -> FinanceManager:
+    def download(self, path: str) -> TickerManager:
         """ Download the data from Yahoo Finance. """
         self.__create_data_folder_if_not_exists(path)
         data = pd.DataFrame()
@@ -141,7 +130,7 @@ class FinanceLoader:
                 continue
             data = pd.concat([data, ticker_data], axis=0)
         
-        manager = FinanceManager(data, self)
+        manager = TickerManager(data, self)
         return manager
     
     def __create_data_folder_if_not_exists(self, path: str) -> None:
