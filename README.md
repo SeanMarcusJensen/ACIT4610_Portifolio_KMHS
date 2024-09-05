@@ -26,7 +26,7 @@ To install the required packages: `pip install -r requirements.txt`
 
 ### Folder Structure
 
-Each folder at the `root` of the project should represent `ONE` problem from the exam paper. Meanwhile, each problem-folder **MUST* cointain atleast:
+Each folder at the `root` of the project should represent `ONE` problem from the exam paper. Meanwhile, each problem-folder **MUST** cointain atleast:
 - **README.MD** file with instructions on how to run the problem code and an explaination of the approach used: such as preprocessing, etc. (*You can see the requirements for this file in the exam paper*).
 - **data**-folder: This is where we will store all our data files used in the project, if any! Such as CSV & JSON files.
     - could be useful to separate out **raw data** and **pre-processed data** into different folders for better structure.
