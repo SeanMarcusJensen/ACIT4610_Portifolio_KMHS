@@ -6,6 +6,8 @@
 
 For the code, we'll use the PEP 8 standard [https://peps.python.org/pep-0008/], one exclusion is that we're using tabs instead of spaces.
 
+We should also use python version `3.11` - because not all libraries support versions above `3.11`. Such as `Tensorflow`.
+
 ### Git Strategy
 
 We follow (Gitflow)[https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow] for structuring branches and such.
@@ -21,8 +23,38 @@ All packages used for the specific problem **MUST** be printed into a *requireme
 ### Environments
 
 We must always use a local environment when working on the codebase.
+
+1. Start by creating a python environment.
+
+```bash
+
+```
+
+I recommend installing and using miniconda - it is easy to create and install environments with different python versions.
+
+```bash
+conda create -n {NAME} python=3.11
+```
+
+2. Then activate the correct environment.
+
+```bash
+conda activate {NAME}
+```
+
+You can always change or deactivate by using
+
+```bash
+conda deactivate
+```
+
 Each problem-folder contains a **requirements.txt** file which holds all of the required libraries used for that specific problem.
-To install the required packages: `pip install -r requirements.txt`
+
+3. To install the required packages:
+
+```bash
+pip install -r requirements.txt
+```
 
 ### Folder Structure
 
