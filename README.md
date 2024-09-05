@@ -31,4 +31,5 @@ Each folder at the `root` of the project should represent `ONE` problem from the
 - **data**-folder: This is where we will store all our data files used in the project, if any! Such as CSV & JSON files.
     - could be useful to separate out **raw data** and **pre-processed data** into different folders for better structure.
 - **main.ipynb or main.py**-file: This will be the entry point for the solution to the problem at hand.
+- we should also keep the folders organized. Therefore, if we have any *utility code* or whatnot, we should place it in a **utils** folder. Try to keep the code as separate as possible, making the **main file** as concise as possible while maintaining readability etc.
 
