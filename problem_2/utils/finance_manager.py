@@ -15,24 +15,23 @@ import os
 from currency_converter import CurrencyConverter
 
 class Company:
-    default_valuta = 'USD'
     valuta_converter = CurrencyConverter()
 
     def __init__(self, ticker: fy.Ticker, history_func) -> None:
         self.__ticker = ticker
         self.data_frame = history_func(ticker)
-        ticker_currency = self.__ticker.info['currency'] if 'currency' in self.__ticker.info else self.default_valuta
-
-        _currency_conversion = lambda x: self.valuta_converter.convert(x, ticker_currency, self.default_valuta)
-        self.data_frame['Ticker'] = ticker.ticker
-        self.data_frame['Open'] = self.data_frame['Open'].apply(_currency_conversion)
-        self.data_frame['High'] = self.data_frame['High'].apply(_currency_conversion)
-        self.data_frame['Low'] = self.data_frame['Low'].apply(_currency_conversion)
-        self.data_frame['Close'] = self.data_frame['Close'].apply(_currency_conversion)
-
+        self.currency = 'USD'
+        self.__valuta_columns = ['Open', 'High', 'Low', 'Close']
+        self.__convert_currency()
+    
     def as_dataframe(self) -> pd.DataFrame:
         """ Get the data as a DataFrame. """
         return self.data_frame
+
+    def __convert_currency(self) -> None:
+        ticker_currency = self.__ticker.info['currency'] if 'currency' in self.__ticker.info else self.currency
+        _currency_conversion = lambda x: self.valuta_converter.convert(x, ticker_currency, self.currency)
+        self.data_frame[self.__valuta_columns] = self.data_frame[self.__valuta_columns].map(_currency_conversion)
 
     def __getitem__(self, key: str) -> pd.DataFrame:
         """ Get the data for a specific ticker. """
