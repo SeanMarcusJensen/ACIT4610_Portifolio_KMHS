@@ -23,19 +23,20 @@ class Company:
         self.data_frame = history_func(ticker)
         ticker_currency = self.__ticker.info['currency'] if 'currency' in self.__ticker.info else self.default_valuta
 
+        _currency_conversion = lambda x: self.valuta_converter.convert(x, ticker_currency, self.default_valuta)
         self.data_frame['Ticker'] = ticker.ticker
-        self.data_frame['Open'] = self.data_frame['Open'].apply(lambda x: self.valuta_converter.convert(x, ticker_currency, self.default_valuta))
-        self.data_frame['High'] = self.data_frame['High'].apply(lambda x: self.valuta_converter.convert(x, ticker_currency, self.default_valuta))
-        self.data_frame['Low'] = self.data_frame['Low'].apply(lambda x: self.valuta_converter.convert(x, ticker_currency, self.default_valuta))
-        self.data_frame['Close'] = self.data_frame['Close'].apply(lambda x: self.valuta_converter.convert(x, ticker_currency, self.default_valuta))
+        self.data_frame['Open'] = self.data_frame['Open'].apply(_currency_conversion)
+        self.data_frame['High'] = self.data_frame['High'].apply(_currency_conversion)
+        self.data_frame['Low'] = self.data_frame['Low'].apply(_currency_conversion)
+        self.data_frame['Close'] = self.data_frame['Close'].apply(_currency_conversion)
 
     def as_dataframe(self) -> pd.DataFrame:
         """ Get the data as a DataFrame. """
-        return self.history
+        return self.data_frame
 
     def __getitem__(self, key: str) -> pd.DataFrame:
         """ Get the data for a specific ticker. """
-        return self.history[key]
+        return self.data_frame[key]
 
 
 class TickerManager:
