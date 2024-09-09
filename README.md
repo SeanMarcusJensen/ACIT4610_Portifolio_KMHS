@@ -12,6 +12,8 @@ We should also use python version `3.11` - because not all libraries support ver
 
 Every python class should have a short description stating the intention of the class and use-case. If the docstring is too large, it is probably an indicator to that the class is too big and should be split into multiple classes.
 
+[**READ MORE ABOUT DOCS BY CLICKING HERE**](https://developer.lsst.io/v/DM-5063/docs/py_docs.html)
+
 ```python
 class TestClass:
     """ This is a short description of the TestClass.
