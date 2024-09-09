@@ -1,3 +1,13 @@
+"""_summary_
+
+Raises:
+ValueError: _description_
+ValueError: _description_
+
+Returns:
+_type_: _description_
+"""
+
 import yfinance as fy
 import datetime
 import pandas as pd

@@ -8,6 +8,19 @@ For the code, we'll use the PEP 8 standard [https://peps.python.org/pep-0008/], 
 
 We should also use python version `3.11` - because not all libraries support versions above `3.11`. Such as `Tensorflow`.
 
+#### Documentation
+
+Every python class should have a short description stating the intention of the class and use-case. If the docstring is too large, it is probably an indicator to that the class is too big and should be split into multiple classes.
+
+```python
+class TestClass:
+    """ This is a short description of the TestClass.
+        Is has no other use-case than being an example.
+    """
+    def __init__(self) -> None:
+        pass
+```
+
 ### Git Strategy
 
 We follow (Gitflow)[https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow] for structuring branches and such.
