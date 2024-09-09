@@ -26,4 +26,8 @@ The project fetches the stock data for the specified `Tickers` at runtime into m
 
 ## Preprocessing
 
-... TBD.
+### Currency
+
+We leverage a Python package to convert the currency for each stock into `USD` to solve the problem of currency mismatch from different stock-market brokerages. Norwegian stocks are retrieved with `NOK` as currency while American stocks has the `USD` as currency. Therefore, our default currency is `USD` to normalize the data.
+
+### TBD
