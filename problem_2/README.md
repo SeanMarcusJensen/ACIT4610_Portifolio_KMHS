@@ -16,6 +16,8 @@ To run the project, you will need some setup:
 
 5. Proceed to open the project, and go into `main.ipynb`.
 
+6. Press the `Run All` icon.
+
 **NB - Make sure you are connected to WiFi. Installing packages and running the code requires WiFi.**
 
 > The code requires Internet Connection because the project fetches the stocks directly from YahooFinance at runtime.
