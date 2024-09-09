@@ -41,10 +41,6 @@ We must always use a local environment when working on the codebase.
 
 1. Start by creating a python environment.
 
-```bash
-
-```
-
 I recommend installing and using miniconda - it is easy to create and install environments with different python versions.
 
 ```bash
