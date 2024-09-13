@@ -22,6 +22,10 @@ To run the project, you will need some setup:
 
 > The code requires Internet Connection because the project fetches the stocks directly from YahooFinance at runtime.
 
+## Packages - Explaination & Usage
+
+*Numpy* - Used to du mathematical equations, such as vectors, vector operations etc. Makes it easier.
+
 ## Data loading
 
 The project fetches the stock data for the specified `Tickers` at runtime into memory through the YahooFinance Python API. This enables us to experiment with different `Tickers` at ease without downloading everything into the computer and git repository.
