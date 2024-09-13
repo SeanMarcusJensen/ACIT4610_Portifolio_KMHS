@@ -8,6 +8,21 @@ For the code, we'll use the PEP 8 standard [https://peps.python.org/pep-0008/], 
 
 We should also use python version `3.11` - because not all libraries support versions above `3.11`. Such as `Tensorflow`.
 
+#### Documentation
+
+Every python class should have a short description stating the intention of the class and use-case. If the docstring is too large, it is probably an indicator to that the class is too big and should be split into multiple classes.
+
+[**READ MORE ABOUT DOCS BY CLICKING HERE**](https://developer.lsst.io/v/DM-5063/docs/py_docs.html)
+
+```python
+class TestClass:
+    """ This is a short description of the TestClass.
+        Is has no other use-case than being an example.
+    """
+    def __init__(self) -> None:
+        pass
+```
+
 ### Git Strategy
 
 We follow (Gitflow)[https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow] for structuring branches and such.
@@ -25,10 +40,6 @@ All packages used for the specific problem **MUST** be printed into a *requireme
 We must always use a local environment when working on the codebase.
 
 1. Start by creating a python environment.
-
-```bash
-
-```
 
 I recommend installing and using miniconda - it is easy to create and install environments with different python versions.
 
