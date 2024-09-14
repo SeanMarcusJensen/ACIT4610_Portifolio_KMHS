@@ -22,6 +22,15 @@ To run the project, you will need some setup:
 
 > The code requires Internet Connection because the project fetches the stocks directly from YahooFinance at runtime.
 
+## Testing
+
+**We use Pytest**
+
+To run:
+
+```bash
+pytest
+```
 ## Packages - Explaination & Usage
 
 *Numpy* - Used to du mathematical equations, such as vectors, vector operations etc. Makes it easier.
