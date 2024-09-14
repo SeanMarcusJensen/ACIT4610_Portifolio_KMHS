@@ -31,6 +31,9 @@ To run:
 ```bash
 pytest
 ```
+## Packages - Explaination & Usage
+
+*Numpy* - Used to du mathematical equations, such as vectors, vector operations etc. Makes it easier.
 
 ## Data loading
 
