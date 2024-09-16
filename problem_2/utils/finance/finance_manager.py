@@ -75,8 +75,10 @@ class TickerManager:
     def get_stock_history(self) -> pd.DataFrame:
         """ Get the stock history for a specific ticker. """
         data = pd.DataFrame()
-        for v in self.companies.values():
-            data = pd.concat([data, v.as_dataframe()], axis=0)
+        for k, v in self.companies.items():
+            data_frame = v.as_dataframe()
+            data_frame['Ticker'] = k
+            data = pd.concat([data, data_frame], axis=0)
         return data
     
     def get_ticker_count(self) -> int:
