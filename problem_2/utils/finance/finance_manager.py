@@ -20,6 +20,7 @@ class Company:
     def __init__(self, ticker: fy.Ticker, history_func) -> None:
         self.__ticker = ticker
         self.data_frame: pd.DataFrame = history_func(ticker)
+        self.data_frame = self.data_frame.reset_index()
         self.__convert_currency()
     
     def as_dataframe(self) -> pd.DataFrame:
@@ -27,8 +28,14 @@ class Company:
         return self.data_frame
 
     def monthly_returns(self):
+        self.data_frame['Date'] = pd.to_datetime(self.data_frame['Date'])
+        self.data_frame.set_index('Date', inplace=True)
+        #We use the Close for calculating returns, as it represents the final price of the stock for the given day.
+        value_column = ['Close']
         monthly_data = self.data_frame.resample('ME').last()
-        monthly_returns = monthly_data.pct_change().dropna()
+        monthly_returns = monthly_data[value_column].pct_change().dropna()
+        monthly_returns.reset_index(inplace=True)
+        monthly_returns['Ticker'] = self.__ticker.ticker
         return monthly_returns
 
     def __convert_currency(self) -> None:
