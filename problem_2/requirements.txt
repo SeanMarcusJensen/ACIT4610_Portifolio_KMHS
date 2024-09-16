@@ -15,6 +15,7 @@ frozendict==2.4.4
 html5lib==1.1
 idna==3.8
 importlib_metadata @ file:///home/conda/feedstock_root/build_artifacts/importlib-metadata_1724187233579/work
+iniconfig==2.0.0
 ipykernel @ file:///home/conda/feedstock_root/build_artifacts/ipykernel_1719845459717/work
 ipython @ file:///home/conda/feedstock_root/build_artifacts/ipython_1725050136642/work
 jedi @ file:///home/conda/feedstock_root/build_artifacts/jedi_1696326070614/work
@@ -35,16 +36,19 @@ pexpect @ file:///home/conda/feedstock_root/build_artifacts/pexpect_170611312530
 pickleshare @ file:///home/conda/feedstock_root/build_artifacts/pickleshare_1602536217715/work
 pillow==10.4.0
 platformdirs @ file:///home/conda/feedstock_root/build_artifacts/platformdirs_1715777629804/work
+pluggy==1.5.0
 prompt_toolkit @ file:///home/conda/feedstock_root/build_artifacts/prompt-toolkit_1718047967974/work
 psutil @ file:///home/conda/feedstock_root/build_artifacts/psutil_1719274586160/work
 ptyprocess @ file:///home/conda/feedstock_root/build_artifacts/ptyprocess_1609419310487/work/dist/ptyprocess-0.7.0-py2.py3-none-any.whl
 pure_eval @ file:///home/conda/feedstock_root/build_artifacts/pure_eval_1721585709575/work
 Pygments @ file:///home/conda/feedstock_root/build_artifacts/pygments_1714846767233/work
 pyparsing==3.1.4
+pytest==8.3.3
 python-dateutil @ file:///home/conda/feedstock_root/build_artifacts/python-dateutil_1709299778482/work
 pytz==2024.1
 pyzmq @ file:///croot/pyzmq_1705605076900/work
 requests==2.32.3
+seaborn==0.13.2
 six @ file:///home/conda/feedstock_root/build_artifacts/six_1620240208055/work
 soupsieve==2.6
 stack-data @ file:///home/conda/feedstock_root/build_artifacts/stack_data_1669632077133/work
