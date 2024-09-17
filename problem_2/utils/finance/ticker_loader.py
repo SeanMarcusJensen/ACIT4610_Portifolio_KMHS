@@ -47,9 +47,6 @@ class TickerLoader:
                 continue
             data = pd.concat([data, ticker_data], axis=0)
         
-        data.reset_index(inplace=True)
-        data.set_index('Date', inplace=True)
-
         return data
     
     def __create_data_folder_if_not_exists(self, path: str) -> None:
@@ -109,6 +106,7 @@ class TickerLoader:
         ticker_data['Ticker'] = ticker
 
         ticker_data.reset_index(inplace=True)
+        ticker_data['Date'] = ticker_data['Date'].apply(lambda x: pd.Timestamp(year=x.year, month=x.month, day=x.day))
         ticker_data.set_index('Date', inplace=True)
 
         return ticker_data
