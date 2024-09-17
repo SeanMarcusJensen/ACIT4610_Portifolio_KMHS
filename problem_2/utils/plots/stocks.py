@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 class StockPlotter:
 
     @staticmethod
-    def stock_history(dataframe: pd.DataFrame, title: str, column: str) -> None:
+    def stock_history(dataframe: pd.DataFrame, title: str, ylabel:str, column: str) -> None:
         # Ensure 'Date' column is in datetime format
         df = dataframe.reset_index()
         df['Date'] = pd.to_datetime(df['Date'], utc=True)
@@ -19,6 +19,6 @@ class StockPlotter:
             plt.plot(data.index, data[column], label=ticker)
         plt.title(title)
         plt.xlabel('Date')
-        plt.ylabel('Price in ($ USD)')
+        plt.ylabel(ylabel)
         plt.legend()
         plt.show()
