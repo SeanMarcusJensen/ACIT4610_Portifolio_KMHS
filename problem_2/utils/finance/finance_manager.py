@@ -14,40 +14,68 @@ import pandas as pd
 from currency_converter import CurrencyConverter
 
 class Company:
+    """_summary_
+
+    Returns:
+        Company: A Company object.
+    """
     currency = 'USD'
-    valuta_converter = CurrencyConverter()
+    __valuta_converter = CurrencyConverter() # Private
 
     def __init__(self, ticker: fy.Ticker, history_func) -> None:
         self.__ticker = ticker
         self.data_frame: pd.DataFrame = history_func(ticker)
-        self.data_frame = self.data_frame.reset_index()
         self.__convert_currency()
+
+        self.__monthly_returns: pd.DataFrame = pd.DataFrame()
     
     def as_dataframe(self) -> pd.DataFrame:
         """ Get the data as a DataFrame. """
         return self.data_frame
+    
+    def get_monthly_returns(self) -> pd.DataFrame:
+        if self.__monthly_returns is None or self.__monthly_returns.empty:
+            monthly_df = self.data_frame.reset_index()
+            monthly_df['Date'] = pd.to_datetime(monthly_df['Date'])
+            monthly_df.set_index('Date', inplace=True)
 
-    def monthly_returns(self):
-        self.data_frame['Date'] = pd.to_datetime(self.data_frame['Date'])
-        self.data_frame.set_index('Date', inplace=True)
-        #We use the Close for calculating returns, as it represents the final price of the stock for the given day.
-        value_column = ['Close']
-        monthly_data = self.data_frame.resample('ME').last()
-        monthly_returns = monthly_data[value_column].pct_change().dropna()
-        monthly_returns.reset_index(inplace=True)
-        monthly_returns['Ticker'] = self.__ticker.ticker
-        return monthly_returns
+            # Group by year and month
+            monthly_group = monthly_df.groupby([monthly_df.index.year, monthly_df.index.month])
+
+            # Calculate the first and last values for each month
+            first_date = monthly_group.first()
+            last_date = monthly_group.last()
+
+
+            # Calculate monthly returns using the 'Close' values
+            monthly_returns = last_date['Close'].pct_change().dropna().rename('Monthly Returns(%)')
+            monthly_returns = monthly_returns.to_frame().reset_index(drop=True)
+
+            # Assign the 'Open' and 'Close' values for each month
+            monthly_returns['Open'] = first_date['Open'].values[1:]  # Skip the first value to match pct_change
+            monthly_returns['Close'] = last_date['Close'].values[1:]  # Skip the first value to match pct_change
+
+            monthly_returns['Date'] = last_date.index[1:]
+
+            # Add the 'Ticker' column
+            monthly_returns['Ticker'] = self.__ticker.ticker
+
+            monthly_returns = monthly_returns[['Date', 'Ticker', 'Open', 'Close', 'Monthly Returns(%)']]
+
+
+            self.__monthly_returns = monthly_returns
+
+        return self.__monthly_returns
 
     def __convert_currency(self) -> None:
         __valuta_columns = ['Open', 'High', 'Low', 'Close']
         ticker_currency = self.__ticker.info['currency'] if 'currency' in self.__ticker.info else self.currency
-        _currency_conversion = lambda x: self.valuta_converter.convert(x, ticker_currency, self.currency)
+        _currency_conversion = lambda x: self.__valuta_converter.convert(x, ticker_currency, self.currency)
         self.data_frame[__valuta_columns] = self.data_frame[__valuta_columns].map(_currency_conversion)
 
     def __getitem__(self, key: str) -> pd.DataFrame:
         """ Get the data for a specific ticker. """
         return self.data_frame[key]
-
 
 class TickerManager:
 
