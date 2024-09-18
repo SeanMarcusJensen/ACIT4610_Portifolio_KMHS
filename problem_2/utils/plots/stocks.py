@@ -20,5 +20,5 @@ class StockPlotter:
         plt.title(title)
         plt.xlabel('Date')
         plt.ylabel(ylabel)
-        plt.legend()
+        plt.legend(bbox_to_anchor=(1, 1))
         plt.show()
