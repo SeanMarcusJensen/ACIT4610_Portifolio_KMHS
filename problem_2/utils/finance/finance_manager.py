@@ -70,7 +70,7 @@ class StockCalculator:
         return all_monthly_returns
 
     @staticmethod
-    def covariance_matrix(df: pd.DataFrame) -> pd.DataFrame:
+    def covariance_matrix(df: pd.DataFrame, column: str) -> pd.DataFrame:
         """
         Calculates the covariance matrix for 'Returns_val' grouped by the 'Ticker'.
         Args:
@@ -78,17 +78,12 @@ class StockCalculator:
         Returns:
             pd.DataFrame: A covariance matrix based on 'Returns_val' for each Ticker.
         """
-        # Ensure 'Date' column is in datetime format
-        #df = df.reset_index()
-        #df['Date'] = pd.to_datetime(df['Date'], utc=True)
-        #df.set_index('Date', inplace=True)
-
         # Ensure the DataFrame has at least two different Tickers to calculate covariance
         if df['Ticker'].nunique() < 2:
             raise ValueError("Covariance requires at least two different tickers")
         
         # Pivot the DataFrame to have tickers as columns and 'Returns_val' as values
-        pivot_df = df.pivot(index='Date', columns='Ticker', values='Returns_val')
+        pivot_df = df.pivot(index='Date', columns='Ticker', values=column)
 
         # Calculate the covariance matrix
         calculated_covariance_matrix = pivot_df.cov()
