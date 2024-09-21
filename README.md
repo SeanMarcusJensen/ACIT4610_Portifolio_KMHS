@@ -1,5 +1,13 @@
 # ACIT4610_Portifolio_KMHS
 
+## Recommended VSCODE Extensions
+
+1. `vscode-pdf`
+2. `Jupyter`
+3. `Pylance`
+4. `Python`
+5. `Jupyter Notebook Renderers`
+
 ## How to setup & run projects?
 
 Each problem folder has one `environment.yml` file. This file contains everything you need to run the code / problem.
