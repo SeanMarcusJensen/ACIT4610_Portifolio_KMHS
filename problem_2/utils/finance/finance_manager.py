@@ -9,16 +9,21 @@ _type_: _description_
 """
 
 import pandas as pd
+from sklearn.preprocessing import StandardScaler
 
 class StockCalculator:
 
     @staticmethod
-    def monthly_returns(df: pd.DataFrame) -> pd.DataFrame:
+    def monthly_returns(df: pd.DataFrame, standardize: bool = False, col_to_standardize: str = 'Returns_val') -> pd.DataFrame:
         """ Calculate the monthly returns for the given DataFrame.
         Args:
             data_frame (pd.DataFrame): A DataFrame with the data.
+            standardize (bool): If True, adds a column for standardized values from the specified column.
+            column_to_standardize (str): The column to standardize if 'standardize' is True. Default is 'Returns_val'.
         Returns:
             pd.DataFrame: A DataFrame with the monthly returns.
+        Raises:
+            ValueError: If the specified column to standardize does not exist in the DataFrame.
         """
         # Ensure the DateTime index is in UTC
         df.index = pd.to_datetime(df.index, utc=True)
@@ -64,6 +69,17 @@ class StockCalculator:
             # Merge the monthly_returns_pct and monthly_returns_val DataFrames on 'Date' and 'Ticker'
             merged_returns = pd.merge(monthly_returns_pct, monthly_returns_val[['Date', 'Ticker', 'Returns_val']], on=['Date', 'Ticker'])
 
+            # If the standardize parameter is True, standardize the specified column
+            if standardize:
+                if col_to_standardize not in merged_returns.columns:
+                    raise ValueError(f"Column '{col_to_standardize}' not found in the DataFrame")
+
+                scaler = StandardScaler()
+                merged_returns[f'Standardized_{col_to_standardize}'] = scaler.fit_transform(merged_returns[[col_to_standardize]])
+
+                # Drop the original columns 'Returns_pct' and 'Returns_val' (or specified column) after standardizing
+                merged_returns = merged_returns.drop(columns=['Returns_pct', 'Returns_val'])
+
             # Append the results to the all_monthly_returns DataFrame
             all_monthly_returns = pd.concat([all_monthly_returns, merged_returns], ignore_index=True)
 
@@ -71,12 +87,13 @@ class StockCalculator:
 
     @staticmethod
     def covariance_matrix(df: pd.DataFrame, column: str) -> pd.DataFrame:
-        """
-        Calculates the covariance matrix for 'Returns_val' grouped by the 'Ticker'.
+        """Calculates the covariance matrix for 'Returns_val' grouped by the 'Ticker'.
         Args:
             data_frame (pd.DataFrame): A DataFrame with the data.
         Returns:
             pd.DataFrame: A covariance matrix based on 'Returns_val' for each Ticker.
+        Raises:
+            ValueError: If the dataframe contains less than two unique Tickers.
         """
         # Ensure the DataFrame has at least two different Tickers to calculate covariance
         if df['Ticker'].nunique() < 2:
