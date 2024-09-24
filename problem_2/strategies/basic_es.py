@@ -175,11 +175,9 @@ class BasicES:
             print(f"Generation: {gen}.")
 
             # Evaluate
-            # Sort population by fitness in descending order
             population.sort(key=lambda x: x.fitness(self.cov), reverse=True)
 
             # Select
-            # Keep the top 'population_size' individuals
             population = population[:self.population_size]
             
             # Create offspring
