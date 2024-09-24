@@ -71,6 +71,19 @@ class RealRepresentation:
 class Individual:
     def __init__(self, chromosone_size: int) -> None:
         self.chromosone = RealRepresentation(chromosone_size, False)
+    
+    @staticmethod
+    def create_from(chromosone: RealRepresentation) -> 'Individual':
+        individual = Individual(0)
+        individual.chromosone = chromosone
+        return individual
+    
+    def copy(self) -> RealRepresentation:
+        rp = RealRepresentation(0)
+        rp.angles = self.chromosone.angles
+        rp.objectives = self.chromosone.objectives
+        rp.omegas = self.chromosone.omegas
+        return rp
 
     def mutate(self, mutation_rate: float) -> None:
         """Mutation for ES is done by changing value by adding random noice
@@ -109,8 +122,16 @@ class Individual:
     def recombinate(self) -> None:
         pass
 
-    def fitness(self) -> None:
-        pass
+    def fitness(self, cov: pd.DataFrame) -> float:
+        weights = self.chromosone.objectives
+        portfolio_returns = (cov * weights).sum(axis=1)
+        
+        # Calculate fitness (e.g., Sharpe ratio or total return)
+        mean_return = portfolio_returns.mean()
+        std_return = portfolio_returns.std()
+        
+        # Using Sharpe ratio as fitness (assuming risk-free rate of 0 for simplicity)
+        return mean_return / std_return if std_return != 0 else 0
 
 
 class BasicES:
@@ -120,12 +141,12 @@ class BasicES:
         ES (_type_): _description_
     """
     def __init__(self,
-                 covariance_matrix: pd.DataFrame,
+                 monthly_returns: pd.DataFrame,
                  generations: int,
                  population_size: int,
                  offspring_size: int,
                  mutation_rate: float) -> None:
-        self.cov = covariance_matrix
+        self.cov = monthly_returns 
 
         """ Evolutionary Strategy Parameter Setup """
         self.population_size = population_size  # (μ)
@@ -154,11 +175,26 @@ class BasicES:
             print(f"Generation: {gen}.")
 
             # Evaluate
+            # Sort population by fitness in descending order
+            population.sort(key=lambda x: x.fitness(self.cov), reverse=True)
 
             # Select
+            # Keep the top 'population_size' individuals
+            population = population[:self.population_size]
+            
+            # Create offspring
+            offspring = []
+            for _ in range(self.oppspring_size):
+                # Select a parent randomly from the population
+                parent_index = np.random.choice(len(population))
+                parent = population[parent_index]
 
-            # Mutate and or Crossover
-            for individual in population:
-                individual.mutate(mutation_rate=0.25) 
+                # Create a child by copying the parent
+                child = Individual.create_from(parent.copy())
 
-            # Replace Population
+                # Mutate the child
+                child.mutate(self.mutation_rate)
+                offspring.append(child)
+
+            # Add offspring to population
+            population.extend(offspring)
