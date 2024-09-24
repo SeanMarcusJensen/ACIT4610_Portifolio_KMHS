@@ -2,3 +2,5 @@ CurrencyConverter==0.17.30
 pandas==2.2.2
 pytest==8.3.3
 yfinance==0.2.43
+scikit-learn==1.5.2
+matplotlib==3.9.2
