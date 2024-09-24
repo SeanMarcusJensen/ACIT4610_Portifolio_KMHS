@@ -43,45 +43,24 @@ class StockCalculator:
             last_date = monthly_group.last()
 
             # Calculate monthly returns in percent and value using the 'Close' values
-            monthly_returns_pct = last_date['Close'].pct_change().dropna().rename('Returns_pct')
-            monthly_returns_pct = monthly_returns_pct.to_frame().reset_index(drop=True)
-            monthly_returns_val = last_date['Close'].diff().dropna().rename('Returns_val')
+            monthly_returns_val = last_date['Close'].diff().dropna().rename('Returns')
             monthly_returns_val = monthly_returns_val.to_frame().reset_index(drop=True)
 
             # Assign the 'Open' and 'Close' values for each month
-            monthly_returns_pct['Open'] = first_date['Open'].values[1:]  # Skip the first value to match pct_change
             monthly_returns_val['Open'] = first_date['Open'].values[1:]  # Skip the first value to match pct_change
-            monthly_returns_pct['Close'] = last_date['Close'].values[1:]  # Skip the first value to match pct_change
             monthly_returns_val['Close'] = last_date['Close'].values[1:]  # Skip the first value to match pct_change
 
             # Add the 'Date' column
-            monthly_returns_pct['Date'] = [pd.Timestamp(year=year, month=month, day=1) for year, month in last_date.index[1:]]
             monthly_returns_val['Date'] = [pd.Timestamp(year=year, month=month, day=1) for year, month in last_date.index[1:]]
 
             # Add the 'Ticker' column
-            monthly_returns_pct['Ticker'] = ticker
             monthly_returns_val['Ticker'] = ticker
 
             # Reorder columns to have 'Date', 'Ticker', 'Close', 'Returns'
-            monthly_returns_pct = monthly_returns_pct[['Date', 'Ticker', 'Close', 'Returns_pct']]
-            monthly_returns_val = monthly_returns_val[['Date', 'Ticker', 'Close', 'Returns_val']]
-
-            # Merge the monthly_returns_pct and monthly_returns_val DataFrames on 'Date' and 'Ticker'
-            merged_returns = pd.merge(monthly_returns_pct, monthly_returns_val[['Date', 'Ticker', 'Returns_val']], on=['Date', 'Ticker'])
-
-            # If the standardize parameter is True, standardize the specified column
-            if standardize:
-                if col_to_standardize not in merged_returns.columns:
-                    raise ValueError(f"Column '{col_to_standardize}' not found in the DataFrame")
-
-                scaler = StandardScaler()
-                merged_returns[f'Standardized_{col_to_standardize}'] = scaler.fit_transform(merged_returns[[col_to_standardize]])
-
-                # Drop the original columns 'Returns_pct' and 'Returns_val' (or specified column) after standardizing
-                merged_returns = merged_returns.drop(columns=['Returns_pct', 'Returns_val'])
+            monthly_returns_val = monthly_returns_val[['Date', 'Ticker', 'Close', 'Returns']]
 
             # Append the results to the all_monthly_returns DataFrame
-            all_monthly_returns = pd.concat([all_monthly_returns, merged_returns], ignore_index=True)
+            all_monthly_returns = pd.concat([all_monthly_returns, monthly_returns_val], ignore_index=True)
 
         return all_monthly_returns
 
