@@ -124,7 +124,7 @@ class Individual:
 
     def fitness(self, returns: np.ndarray) -> float:
         weights = self.chromosone.objectives
-        portfolio_returns = (returns * weights).sum()
+        portfolio_returns = np.dot(returns, weights).sum()
         
         # Calculate fitness (e.g., Sharpe ratio or total return)
         mean_return = portfolio_returns.mean()
