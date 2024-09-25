@@ -112,12 +112,12 @@ class Individual:
             _type_: _description_
         """
 
-        if np.random.rand() <= mutation_rate:
+        if np.random.rand() >= mutation_rate:
             # Was not its time to mutate :D
             return
 
         # do mutation
-        self.chromosone.mutate(0.1) # Learning Rate 0.1
+        self.chromosone.mutate(0.4) # Learning Rate 0.1
 
     def recombinate(self) -> None:
         pass
