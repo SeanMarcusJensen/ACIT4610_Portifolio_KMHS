@@ -60,9 +60,11 @@ class RealRepresentation:
                         for _ in range(len(self.omegas))]))
 
         # x’ = x + N(0, omega’)
-        x_prime = self.objectives + omega_prime * np.random.normal(0, 1)
+
+        # x_prime = self.objectives + np.dot(omega_prime, [np.random.normal(0, 1) for _ in range(len(omega_prime))])
+        x_prime = self.objectives + np.array([np.random.normal(0, omega) for omega in omega_prime])
         self.omegas = omega_prime
-        self.objectives = x_prime
+        self.objectives = self.__normalize(x_prime)
     
     def get_chromosone(self) -> np.ndarray:
         return self.objectives
