@@ -133,6 +133,9 @@ class Individual:
         # Using Sharpe ratio as fitness (assuming risk-free rate of 0 for simplicity)
         return mean_return / std_return if std_return != 0 else 0
 
+class ESLogger(ABC):
+    def log(self, generation: int, rp: List[RealRepresentation]) -> None:
+        pass
 
 class ES:
     def __init__(self) -> None:
@@ -142,6 +145,7 @@ class ES:
         self.mutation_rate = 1.0
         self.representation: RealRepresentation
         self.fitness_weights: np.ndarray
+        self.logger: ESLogger
 
     def with_generations(self, size: int) -> 'ES':
         """Sets the number of generations to run the strategy for.
@@ -206,6 +210,10 @@ class ES:
         """
         self.representation = rp
         return self
+    
+    def with_logger(self, logger: ESLogger) -> 'ES':
+        self.logger = logger
+        return self
 
     def __create_population(self) -> List[Individual]:
         chromosone_size = self.fitness_weights.shape[0] # Get number of stocks.
@@ -220,8 +228,6 @@ class ES:
 
         # Run for all generations
         for gen in range(self.generations):
-            print(f"Generation: {gen}.")
-
             # Evaluate
             population.sort(key=lambda x: x.fitness(self.fitness_weights), reverse=True)
 
@@ -244,5 +250,7 @@ class ES:
 
             # Add offspring to population
             population.extend(offspring)
+            self.logger.log(gen, [i.chromosone for i in population])
+
         
         return np.array([i.chromosone.objectives for i in population])
