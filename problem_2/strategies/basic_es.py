@@ -122,9 +122,9 @@ class Individual:
     def recombinate(self) -> None:
         pass
 
-    def fitness(self, cov: pd.DataFrame) -> float:
+    def fitness(self, returns: np.ndarray) -> float:
         weights = self.chromosone.objectives
-        portfolio_returns = (cov * weights).sum(axis=1)
+        portfolio_returns = (returns * weights).sum()
         
         # Calculate fitness (e.g., Sharpe ratio or total return)
         mean_return = portfolio_returns.mean()
@@ -134,38 +134,86 @@ class Individual:
         return mean_return / std_return if std_return != 0 else 0
 
 
-class BasicES:
-    """_summary_
+class ES:
+    def __init__(self) -> None:
+        self.generations = 20
+        self.population_size = 1
+        self.offspring_size = 1
+        self.mutation_rate = 1.0
+        self.representation: RealRepresentation
+        self.fitness_weights: np.ndarray
 
-    Args:
-        ES (_type_): _description_
-    """
-    def __init__(self,
-                 monthly_returns: pd.DataFrame,
-                 generations: int,
-                 population_size: int,
-                 offspring_size: int,
-                 mutation_rate: float) -> None:
-        self.cov = monthly_returns 
+    def with_generations(self, size: int) -> 'ES':
+        """Sets the number of generations to run the strategy for.
 
-        """ Evolutionary Strategy Parameter Setup """
-        self.population_size = population_size  # (μ)
-        self.oppspring_size = offspring_size    # (λ)
-        self.mutation_rate = mutation_rate
-        self.generations = generations
+        Args:
+            size (int): The number of generations to run for.
+
+        Returns:
+            ES: The Evolutionary Strategy.
+        """
+        self.generations = size
+        return self
     
+    def with_population(self, size: int) -> 'ES':
+        """Sets the number of allowed population to be created in the algorithm.
+
+        Args:
+            size (int): The number of population (alpha)
+
+        Returns:
+            ES: The Evolutionary Strategy.
+        """
+        self.population_size = size
+        return self
+    
+    def with_offsprings(self, size: int) -> 'ES':
+        """Sets the number of allowed offsprings to be created in the algorithm.
+
+        Args:
+            size (int): The number of offsprings (lambda)
+
+        Returns:
+            ES: The Evolutionary Strategy.
+        """
+        self.offspring_size = size
+        return self
+
+    def with_mutation(self, rate: float) -> 'ES':
+        """Sets the odds for mutation.
+
+        Args:
+            rate(float): The odds of mutation.
+
+        Returns:
+            ES: The Evolutionary Strategy.
+        """
+        self.mutation_rate = rate 
+        return self
+    
+    def with_fitness(self, fitness_weights: np.ndarray) -> 'ES':
+        self.fitness_weights = fitness_weights
+        return self
+
+    def with_representation(self, rp: RealRepresentation) -> 'ES':
+        """Sets the representation for the Chromosone.
+
+        Args:
+            rp (RealRepresentation): The representation.
+
+        Returns:
+            ES: The Evolutionary Strategy
+        """
+        self.representation = rp
+        return self
+
     def __create_population(self) -> List[Individual]:
-        chromosone_size = self.cov.shape[0] # Get number of stocks.
+        chromosone_size = self.fitness_weights.shape[0] # Get number of stocks.
         population = list([Individual(chromosone_size)
                       for _ in range(self.population_size)])
         return population
-
-    def __call__(self, *args: Any, **kwds: Any) -> Any:
-        """_summary_
-
-        Returns:
-            Any: _description_
-        """
+    
+    def run(self) -> np.ndarray:
 
         # Create Initial Population
         population = self.__create_population()
@@ -175,14 +223,14 @@ class BasicES:
             print(f"Generation: {gen}.")
 
             # Evaluate
-            population.sort(key=lambda x: x.fitness(self.cov), reverse=True)
+            population.sort(key=lambda x: x.fitness(self.fitness_weights), reverse=True)
 
             # Select
             population = population[:self.population_size]
             
             # Create offspring
             offspring = []
-            for _ in range(self.oppspring_size):
+            for _ in range(self.offspring_size):
                 # Select a parent randomly from the population
                 parent_index = np.random.choice(len(population))
                 parent = population[parent_index]
@@ -196,3 +244,5 @@ class BasicES:
 
             # Add offspring to population
             population.extend(offspring)
+        
+        return np.array([i.chromosone.objectives for i in population])
