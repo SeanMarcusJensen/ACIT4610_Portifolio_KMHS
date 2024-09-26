@@ -234,6 +234,8 @@ class ES:
             population.sort(key=lambda x: x.fitness(self.fitness_weights), reverse=True)
 
             # Select
+
+            # Offspring replace parents only if more fit.
             population = population[:self.population_size]
             
             # Create offspring
