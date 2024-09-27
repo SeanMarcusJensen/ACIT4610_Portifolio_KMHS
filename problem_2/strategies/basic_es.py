@@ -1,92 +1,9 @@
-
 from abc import ABC, abstractmethod
 from typing import Any, List
 import pandas as pd
 import numpy as np
-
-
-class Mutator(ABC):
-    def __init__(self, threshold: float = 0.0) -> None:
-        self.treshold = threshold
-
-    def mutate(self, representation: np.ndarray) -> np.ndarray:
-        """Can be used to create different mutation styles."""
-        self._mutate_sigma()
-        return self._mutate_objectives(representation)
-    
-    @abstractmethod
-    def _mutate_sigma(self) -> None:
-        """Abstract Protected Method"""
-        pass
-    
-    @abstractmethod
-    def _mutate_objectives(self, chromosone: np.ndarray) -> np.ndarray:
-        """Abstract Protected Method"""
-        pass
-
-class OneStepMutator(Mutator):
-    def __init__(self, learning_rate: float, threshold: float) -> None:
-        super().__init__(threshold=threshold)
-        self.learning_rate = learning_rate
-        self.sigma = np.random.rand()
-    
-    def _mutate_sigma(self) -> None:
-        # Update the Sigma first!
-        sigma_prime = self.sigma * np.exp(self.learning_rate * np.random.normal(0, 1))
-
-        # Apply Threshold to step sizes
-        sigma_prime = np.maximum(sigma_prime, self.treshold)
-        if sigma_prime < self.treshold:
-            sigma_prime = self.treshold
-        
-        self.sigma = sigma_prime
-    
-    def _mutate_objectives(self, chromosone: np.ndarray) -> np.ndarray:
-        """ Update the objectives in chromosone.
-        Formula: x′i = xi + σ′ · Ni(0, 1)
-        where Ni(0, 1) is a set of len(x) values of normal values.
-        """
-        return chromosone + self.sigma * np.random.normal(0, 1, size=chromosone.shape)
-
-class NStepMutatot(Mutator):
-    def __init__(self, learning_rate: float, threshold: float, objectives: int) -> None:
-        super().__init__(threshold=threshold)
-        self.learning_rate = learning_rate
-        self.n = objectives
-        self.sigma = np.random.rand(self.n)
-        self.tau = self.learning_rate / np.sqrt(2 * np.sqrt(self.n))
-        self.tau_prime = self.learning_rate / np.sqrt(2 * self.n)
-    
-    def _mutate_sigma(self) -> None:
-        """
-        Formula: σ′ i = σi · eτ ′·N(0,1)+τ ·Ni(0,1),
-        """
-        # Generate random values
-        N0 = np.random.normal(0, 1)  # Single random number for all dimensions
-        Ni = np.random.normal(0, 1, size=self.n)  # Individual random numbers
-        sigma_prime = self.sigma * np.exp(self.tau_prime * N0 + self.tau * Ni)
-
-        # Apply Threshold to step sizes.
-        return np.maximum(sigma_prime, self.treshold)
-    
-    def _mutate_objectives(self, chromosone: np.ndarray) -> np.ndarray:
-        """
-        Formula: x′i = xi + σ′ i · Ni(0, 1),
-        """
-        Ni_mutation = np.random.normal(0, 1, size=self.n)
-        return chromosone + (self.sigma * Ni_mutation)
-
-class MutationFactory:
-    def __init__(self, learning_rate: float, threshold: float, step_size: int) -> None:
-        self.learning_rate = learning_rate
-        self.threshold = threshold
-        self.step_size = step_size
-
-    def create_mutator(self) -> Mutator:
-        if self.step_size <= 1:
-            return OneStepMutator(self.learning_rate, self.threshold)
-        return NStepMutatot(self.learning_rate, self.threshold, self.step_size)
-        
+from .mutators import Mutator, MutationFactory
+from utils import es_logger as logger
 
 class Individual:
     def __init__(self, chromosone_size: int, mutator: Mutator) -> None:
@@ -111,32 +28,6 @@ class Individual:
         return self.objectives.copy()
 
     def mutate(self, mutation_rate: float) -> None:
-        """Mutation for ES is done by changing value by adding random noice
-        drawn from normal / gaussian distribution.
-
-        x'i = xi + N(0, omega)
-        • N(0, omega) is a random Gaussian number with a
-            mean of zero and standard deviations of omega.
-
-        Key idea:
-        • omega is part of the chromosome <x_1,...,x_n, omega_1,..., omega_n>
-        • omega is also mutated into omega' (see later how)
-
-        Args:
-            mutation_rate (float): _description_
-        """
-
-        """ MUTATION RULE!
-        This rule resets  after every k iterations by
-         =  / c if ps > 1/5
-         =  • c if ps < 1/5
-         =  if ps = 1/5
-        where ps is the % of successful mutations, 0.817  c  1
-
-        Returns:
-            _type_: _description_
-        """
-
         if np.random.rand() >= mutation_rate:
             # Was not its time to mutate :D
             return
@@ -158,9 +49,6 @@ class Individual:
         # Using Sharpe ratio as fitness (assuming risk-free rate of 0 for simplicity)
         return mean_return / std_return if std_return != 0 else 0
 
-class ESLogger(ABC):
-    def log(self, generation: int, rp: List[np.ndarray]) -> None:
-        pass
 
 class ES:
     def __init__(self) -> None:
@@ -170,7 +58,7 @@ class ES:
         self.mutation_rate = 1.0
         self.chromosone_size: int 
         self.fitness_weights: np.ndarray
-        self.logger: ESLogger
+        self.logger: logger.ESLogger
         self.mutation_factory: MutationFactory # Need Mutator Factory
 
     def with_generations(self, size: int) -> 'ES':
@@ -238,7 +126,7 @@ class ES:
         self.chromosone_size = size
         return self
     
-    def with_logger(self, logger: ESLogger) -> 'ES':
+    def with_logger(self, logger: logger.ESLogger) -> 'ES':
         self.logger = logger
         return self
 
