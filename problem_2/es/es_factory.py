@@ -30,7 +30,7 @@ class ESFactory:
 
         self.fitness_evaluator = find_fitness
 
-    def create_basic(self) -> Strategy:
+    def create_basic(self, steps: int) -> Strategy:
         learning_rate = 0.1
         population_size = 1
         offspring_size = 1
@@ -41,7 +41,7 @@ class ESFactory:
         population = [Individual(
             chromosone=chromosones[i],
             mutator=self.factory.create_self_adaptive(
-                steps=1, learning_rate=learning_rate))
+                steps=steps, learning_rate=learning_rate))
                       for i in range(population_size)]
         
         strategy = advanced_es.AdvancedES(
