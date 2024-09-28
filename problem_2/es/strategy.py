@@ -5,20 +5,16 @@ from utils.logger import Logger
 
 
 class Strategy(ABC):
-    def __init__(self, initial_population: List[Individual], logger: Logger) -> None:
+    def __init__(self, initial_population: List[Individual]) -> None:
         self._population = initial_population
-        self._logger = logger
     
-    def fit(self, generations: int) -> List[Individual]:
-        for _ in range(generations):
+    def fit(self, generations: int, logger: Logger) -> List[Individual]:
+        for gen in range(generations):
             offsprings = self.create_offsprings()
             new_population = self.select(offsprings)
             self._population = new_population
 
-            #     # Evaluate
-
-            #     # Select
-            #     population = np.array(sorted_population[:population_size])
+            logger.info(generation=gen, population=new_population)
 
         return self._population
     

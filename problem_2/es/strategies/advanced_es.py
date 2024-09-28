@@ -9,12 +9,11 @@ import numpy as np
 class AdvancedES(Strategy):
     def __init__(self,
                  initial_population: List[Individual],
-                 logger: Logger,
                  recombinator: Recombinator,
                  evaluator: Callable[[Individual], float]) -> None:
         self.recombinator = recombinator
         self.get_fitness = evaluator
-        super().__init__(initial_population, logger=logger)
+        super().__init__(initial_population)
         
     def create_offsprings(self) -> List[Individual]:
         offsprings = self.recombinator.recombinate(self._population)

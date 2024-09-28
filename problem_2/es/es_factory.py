@@ -4,7 +4,6 @@ import pandas as pd
 from .individual import Individual
 from mutations import MutatorFactory
 from recombinators import NoneCombinator
-from utils.es_logger import ESLogger
 from .strategy import Strategy
 from .strategies import advanced_es
 
@@ -25,7 +24,9 @@ class ESFactory:
 
         """ Created an enclosed function! """
         def find_fitness(individual: Individual) -> float:
-            return np.dot(self.__mean_returns, individual.chromosone)
+            fitness = np.dot(self.__mean_returns, individual.chromosone)
+            individual.set_fitness(fitness)
+            return fitness
 
         self.fitness_evaluator = find_fitness
 
@@ -33,7 +34,6 @@ class ESFactory:
         learning_rate = 0.1
         population_size = 1
         offspring_size = 1
-        logger = ESLogger()
 
         # Generate Population
         chromosones = np.random.rand(population_size, self.__n_assets)
@@ -46,7 +46,6 @@ class ESFactory:
         
         strategy = advanced_es.AdvancedES(
             initial_population=population,
-            logger=logger,
             recombinator=NoneCombinator(),
             evaluator=self.fitness_evaluator)
 

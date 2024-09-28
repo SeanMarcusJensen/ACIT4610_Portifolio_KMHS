@@ -8,6 +8,10 @@ class Individual:
     def __init__(self, chromosone: np.ndarray, mutator: Mutator) -> None:
         self.chromosone = chromosone
         self.mutator = mutator
+        self.fitness = 0.0
+    
+    def set_fitness(self, value: float) -> None:
+        self.fitness = value
 
     def mutate(self) -> 'Individual':
         """ Mutates the Real Representation.

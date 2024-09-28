@@ -4,8 +4,11 @@ from utils.logger import Logger
 
 class ESLogger(Logger):
     def __init__(self) -> None:
-        self.generations = np.array([])
-        self.fitness = np.array([])
+        self.generations = []
+        self.fitness = []
 
-    def info(**kwargs):
-        return super().info()
+    def info(self, **kwargs) -> None:
+        if 'generation' in kwargs and 'population' in kwargs:
+            self.generations.append(kwargs['generation'])
+            best_fitness = max(individual.fitness for individual in kwargs['population'])
+            self.fitness.append(best_fitness)
