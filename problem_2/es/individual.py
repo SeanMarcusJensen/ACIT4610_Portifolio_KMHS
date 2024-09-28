@@ -1,25 +1,13 @@
 import numpy as np
+from mutations import Mutator
 
 class Individual:
     """ Represents an individual with
         'Real Numbered Continous Representation' in the Evolutionary Strategy.
     """
-    def __init__(self, chromosone: np.ndarray, sigma_size: int) -> None:
+    def __init__(self, chromosone: np.ndarray, mutator: Mutator) -> None:
         self.chromosone = chromosone
-        self.sigma = np.random.rand(sigma_size)[0] # Random value between 0 and 1.
-    
-    def fitness(self, weights: np.ndarray) -> float:
-        """ The chromosome is dot-multiplied with these weights returns to get the expected portfolio return.
-
-        Args:
-            weights (np.ndarray): A list of assets mean returns to evaluate the chromosone.
-                Must be of same length as the chromosone.
-
-        Returns:
-            float: Represents its strength.
-        """
-        assert(len(weights) == len(self.chromosone))
-        return np.dot(weights, self.chromosone)
+        self.mutator = mutator
 
     def mutate(self) -> 'Individual':
         """ Mutates the Real Representation.
@@ -36,28 +24,11 @@ class Individual:
         p(Δxi)= 1 / σ√2π · e^− (Δxi−ξ)^2 / 2σ^2 .
         """
 
-        self.__one_step_mutate()
+        self.chromosone = self.mutator.mutate(self.chromosone)
         self.__normalize_chromosone()
-        
         return self
 
     def __normalize_chromosone(self) -> None:
         """ Keep the chromosone within the constraints.
         """
         self.chromosone /= self.chromosone.sum()
-
-    def __n_step_mutate(self) -> None:
-        pass
-    
-    def __one_step_mutate(self):
-        learning_rate = 0.25
-        threshold = 1 / np.sqrt(len(self.chromosone))
-
-        sigma_prime = self.sigma * np.exp(learning_rate * np.random.normal(0, 1))
-        sigma_prime = np.maximum(sigma_prime, threshold)
-
-        N = np.random.normal(0, 1, size=len(self.chromosone))
-        x_prime = self.chromosone + (sigma_prime * N)
-
-        self.sigma = sigma_prime
-        self.chromosone = x_prime
