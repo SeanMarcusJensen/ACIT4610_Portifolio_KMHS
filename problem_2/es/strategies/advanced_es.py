@@ -13,13 +13,13 @@ class AdvancedES(Strategy):
                  evaluator: Callable[[Individual], float]) -> None:
         self.recombinator = recombinator
         self.get_fitness = evaluator
+        self.mu = len(initial_population)
         super().__init__(initial_population)
         
     def create_offsprings(self) -> List[Individual]:
         offsprings = self.recombinator.recombinate(self._population)
-
-        # TODO: MUTATE
-        return offsprings
+        offsprings = [ind.mutate() for ind in offsprings]
+        return offsprings[:self.mu]
 
     def select(self, offsprings: List[Individual]) -> List[Individual]:
         combined_population = np.hstack((self._population, offsprings))

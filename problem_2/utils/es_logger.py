@@ -1,5 +1,5 @@
-import numpy as np
 from utils.logger import Logger
+import matplotlib.pyplot as plt
 
 
 class ESLogger(Logger):
@@ -12,3 +12,10 @@ class ESLogger(Logger):
             self.generations.append(kwargs['generation'])
             best_fitness = max(individual.fitness for individual in kwargs['population'])
             self.fitness.append(best_fitness)
+    
+    def plot(self) -> None:
+        plt.plot(self.generations, marker='o')
+        plt.xlabel('Generation')
+        plt.ylabel('Fitness')
+        plt.title('Maximum fitnessscore by generations')
+        plt.show()

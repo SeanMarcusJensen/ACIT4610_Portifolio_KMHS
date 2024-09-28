@@ -5,7 +5,7 @@ class OneStepMutator(mutations.Mutator):
     def __init__(self, learning_rate: float) -> None:
         self.learning_rate = learning_rate
         self.sigma = np.random.rand()
-        self.threshold = 1e8
+        self.threshold = 1e9
 
     def mutate(self, chromosone: np.ndarray) -> np.ndarray:
         self.threshold = 1 / np.sqrt(len(chromosone))
