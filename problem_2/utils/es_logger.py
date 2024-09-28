@@ -1,8 +1,11 @@
-
-from abc import ABC
-from typing import List
 import numpy as np
+from utils.logger import Logger
 
-class ESLogger(ABC):
-    def log(self, generation: int, rp: List[np.ndarray]) -> None:
-        pass
+
+class ESLogger(Logger):
+    def __init__(self) -> None:
+        self.generations = np.array([])
+        self.fitness = np.array([])
+
+    def info(**kwargs):
+        return super().info()
