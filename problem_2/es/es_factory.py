@@ -6,15 +6,9 @@ from mutations import MutatorFactory
 from recombinators import NoneCombinator, DiscreteRecombinator
 from .strategy import Strategy
 from .strategies import advanced_es
+from .types import ESType
 
 class ESFactory:
-    """ TODO:
-        - [x] Make sure Weights are between [0, 1)
-        - [x] Make sure Weighted Sum are 1 (100%).
-        - [x] Create Logger & Log chromosones.
-        - [ ] Create Download function.
-    
-    """
     def __init__(self, monthly_returns: pd.DataFrame) -> None:
         self.monthly_returns = monthly_returns
         self.__n_assets= len(monthly_returns.columns)# R^n => R^1
@@ -45,7 +39,45 @@ class ESFactory:
         self.fitness_evaluator = evaluate_fitness_returns
 
     def create_basic(self, steps: int, population_size: int=1, offspring_size: int=1) -> Strategy:
+        """Create a basic ES strategy without recombination.
+        TODO: Add not self adaptive mutation.
+
+        Args:
+            steps (int): Number of steps to run the ES for. if 1, then it is a one step ES.
+            population_size (int, optional): Number of individuals in the population. Defaults to 1.
+            offspring_size (int, optional): Number of offspring to create. Defaults to 1.
+
+        Returns:
+            Strategy: A basic ES strategy.
+        """
+
         # Generate Population
+        def create_diverse_individual():
+            chromosone = np.random.dirichlet(np.ones(self.__n_assets) * 0.5)
+            return Individual(chromosone, self.factory.create_self_adaptive(steps, learning_rate=0.1))
+
+        initial_population = [create_diverse_individual() for _ in range(population_size)]
+        
+        strategy = advanced_es.AdvancedES(
+            initial_population=initial_population,
+            recombinator=NoneCombinator(),
+            evaluator=self.fitness_evaluator,
+            offspring_size=offspring_size,
+            es_type=ESType.MuPlusLambda)
+
+        return strategy
+
+    def create_advanced(self, es_type: ESType,  steps: int, population_size: int=1, offspring_size: int=1) -> Strategy:
+        """Create an advanced ES strategy with recombination.
+
+        Args:
+            steps (int): Number of steps to run the ES for. if 1, then it is a one step ES.
+            population_size (int, optional): Number of individuals in the population. Defaults to 1.
+            offspring_size (int, optional): Number of offspring to create. Defaults to 1.
+
+        Returns:
+            Strategy: An advanced ES strategy.
+        """
         def create_diverse_individual():
             chromosone = np.random.dirichlet(np.ones(self.__n_assets) * 0.5)
             return Individual(chromosone, self.factory.create_self_adaptive(steps, learning_rate=0.1))
@@ -56,10 +88,7 @@ class ESFactory:
             initial_population=initial_population,
             recombinator=DiscreteRecombinator(),
             evaluator=self.fitness_evaluator,
-            offspring_size=offspring_size)
+            offspring_size=offspring_size,
+            es_type=es_type)
 
         return strategy
-
-
-    # def create_advanced(self) -> Portifolio:
-    #     pass
