@@ -28,6 +28,10 @@ class NStepMutator(mutations.Mutator):
     def copy(self) -> mutations.Mutator:
         new = NStepMutator(self.learning_rate, self.n)
         new.sigma = self.sigma
+        new.success_count = self.success_count
+        new.total_count = self.total_count
+        new.adaptation_interval = self.adaptation_interval
+        new.adaptation_factor = self.adaptation_factor
         return new
 
     def _mutate_sigma(self) -> None:
