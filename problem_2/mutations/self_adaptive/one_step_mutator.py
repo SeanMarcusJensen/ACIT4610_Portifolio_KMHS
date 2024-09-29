@@ -13,7 +13,7 @@ class OneStepMutator(mutations.Mutator):
         return self._mutate_objectives(chromosone)
 
     def _mutate_sigma(self) -> None:
-        sigma_prime = self.sigma * np.exp(self.learning_rate * np.random.normal(0, 1))
+        sigma_prime = self.sigma * np.exp(np.random.normal(0, self.learning_rate))
         sigma_prime = np.maximum(sigma_prime, self.threshold)
         self.sigma = sigma_prime
     
@@ -22,4 +22,4 @@ class OneStepMutator(mutations.Mutator):
         Formula: x′i = xi + σ′ · Ni(0, 1)
         where Ni(0, 1) is a set of len(x) values of normal values.
         """
-        return objective + self.sigma * np.random.normal(0, 1)
+        return objective + np.random.normal(0, self.sigma)

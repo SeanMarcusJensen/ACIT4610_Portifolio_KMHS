@@ -10,10 +10,10 @@ from .strategies import advanced_es
 
 class ESFactory:
     """ TODO:
-        - [ ] Make sure Weights are between [0, 1)
-        - [ ] Make sure Weighted Sum are 1 (100%).
+        - [x] Make sure Weights are between [0, 1)
+        - [x] Make sure Weighted Sum are 1 (100%).
+        - [x] Create Logger & Log chromosones.
         - [ ] Create Download function.
-        - [ ] Create Logger & Log chromosones.
     
     """
     def __init__(self, monthly_returns: pd.DataFrame) -> None:
@@ -30,10 +30,8 @@ class ESFactory:
 
         self.fitness_evaluator = find_fitness
 
-    def create_basic(self, steps: int) -> Strategy:
-        learning_rate = 0.1
-        population_size = 1
-        offspring_size = 1
+    def create_basic(self, steps: int, population_size: int=1, offspring_size: int=1) -> Strategy:
+        learning_rate = 0.6
 
         # Generate Population
         chromosones = np.random.rand(population_size, self.__n_assets)
@@ -47,7 +45,8 @@ class ESFactory:
         strategy = advanced_es.AdvancedES(
             initial_population=population,
             recombinator=NoneCombinator(),
-            evaluator=self.fitness_evaluator)
+            evaluator=self.fitness_evaluator,
+            offspring_size=offspring_size)
 
         return strategy
 

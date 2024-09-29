@@ -7,8 +7,8 @@ class NStepMutator(mutations.Mutator):
         self.learning_rate = learning_rate
         self.n = objectives
         self.sigma = np.random.rand(self.n)
-        self.tau = self.learning_rate / np.sqrt(2 * np.sqrt(self.n))
-        self.tau_prime = self.learning_rate / np.sqrt(2 * self.n)
+        self.tau = 1 / np.sqrt(2 * np.sqrt(self.n))
+        self.tau_prime = 1 / np.sqrt(2 * self.n)
     
     def mutate(self, chromosone: np.ndarray) -> np.ndarray:
         self.threshold = 1 / np.sqrt(len(chromosone))
@@ -25,7 +25,7 @@ class NStepMutator(mutations.Mutator):
         sigma_prime = self.sigma * np.exp(self.tau_prime * N0 + self.tau * Ni)
 
         # Apply Threshold to step sizes.
-        return np.maximum(sigma_prime, self.threshold)
+        self.sigma = np.maximum(sigma_prime, self.threshold)
     
     def _mutate_objectives(self, chromosone: np.ndarray) -> np.ndarray:
         """

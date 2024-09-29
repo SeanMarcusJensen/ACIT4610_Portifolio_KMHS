@@ -35,4 +35,6 @@ class Individual:
     def __normalize_chromosone(self) -> None:
         """ Keep the chromosone within the constraints.
         """
-        self.chromosone /= self.chromosone.sum()
+        self.chromosone = np.clip(self.chromosone, 0, None)
+        sum = self.chromosone.sum()
+        self.chromosone = np.array([(c / sum) if c > 0 else 0 for c in self.chromosone])
