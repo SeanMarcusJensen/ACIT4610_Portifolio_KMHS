@@ -42,21 +42,21 @@ class ESFactory:
         self.fitness_evaluator = evaluate_fitness_returns
     
     def create(self, es_type: ESType, population_size: int=1, offspring_size: int=1, learning_rate: float=0.1) -> Strategy:
+        def fitness_evaluator(individual: Individual) -> float:
+            fitness = self.monthly_returns.dot(individual.chromosone).sum().mean()
+            individual.set_fitness(fitness)
+            return fitness
+
         def create_diverse_individual():
             chromosone = np.random.dirichlet(np.ones(self.__n_assets) * 0.1)
             return Individual(chromosone, self.factory.create_basic(learning_rate=learning_rate))
 
         initial_population = [create_diverse_individual() for _ in range(population_size)]
 
-        def fitness_evaluator(individual: Individual) -> float:
-            fitness = self.monthly_returns.dot(individual.chromosone).sum().mean()
-            individual.set_fitness(fitness)
-            return fitness
-
         strategy = advanced_es.AdvancedES(
             initial_population=initial_population,
             recombinator=UniformCrossover(),
-            evaluator=self.fitness_evaluator,
+            evaluator=fitness_evaluator,
             offspring_size=offspring_size,
             es_type=es_type)
 
@@ -74,13 +74,11 @@ class ESFactory:
         Returns:
             Strategy: A basic ES strategy.
         """
+        def __create_diverse_individual_uniform():
+            chromosone = np.ones(self.__n_assets) / self.__n_assets
+            return Individual(chromosone, self.factory.create_self_adaptive(steps, learning_rate=0.3))
 
-        # Generate Population
-        def create_diverse_individual():
-            chromosone = np.random.dirichlet(np.ones(self.__n_assets) * 0.1)
-            return Individual(chromosone, self.factory.create_self_adaptive(steps, learning_rate=0.1))
-
-        initial_population = [create_diverse_individual() for _ in range(population_size)]
+        initial_population = [__create_diverse_individual_uniform() for _ in range(population_size)]
         
         strategy = advanced_es.AdvancedES(
             initial_population=initial_population,
@@ -102,11 +100,11 @@ class ESFactory:
         Returns:
             Strategy: An advanced ES strategy.
         """
-        def create_diverse_individual():
+        def __create_diverse_individual_dirichlet():
             chromosone = np.random.dirichlet(np.ones(self.__n_assets) * 0.1)
-            return Individual(chromosone, self.factory.create_self_adaptive(steps, learning_rate=0.1))
+            return Individual(chromosone, self.factory.create_self_adaptive(steps, learning_rate=0.3))
 
-        initial_population = [create_diverse_individual() for _ in range(population_size)]
+        initial_population = [__create_diverse_individual_dirichlet() for _ in range(population_size)]
         
         strategy = advanced_es.AdvancedES(
             initial_population=initial_population,
@@ -116,3 +114,5 @@ class ESFactory:
             es_type=es_type)
 
         return strategy
+
+
