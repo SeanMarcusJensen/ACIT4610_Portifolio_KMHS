@@ -15,6 +15,11 @@ class NStepMutator(mutations.Mutator):
         self._mutate_sigma()
         return self._mutate_objectives(chromosone)
     
+    def copy(self) -> mutations.Mutator:
+        new = NStepMutator(self.learning_rate, self.n)
+        new.sigma = self.sigma
+        return new
+
     def _mutate_sigma(self) -> None:
         """
         Formula: σ′ i = σi · eτ ′·N(0,1)+τ ·Ni(0,1),

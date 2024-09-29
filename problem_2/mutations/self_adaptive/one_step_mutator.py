@@ -12,6 +12,12 @@ class OneStepMutator(mutations.Mutator):
         self._mutate_sigma()
         return self._mutate_objectives(chromosone)
 
+            
+    def copy(self) -> mutations.Mutator:
+        new = OneStepMutator(self.learning_rate)
+        new.sigma = self.sigma
+        return new
+
     def _mutate_sigma(self) -> None:
         sigma_prime = self.sigma * np.exp(np.random.normal(0, self.learning_rate))
         sigma_prime = np.maximum(sigma_prime, self.threshold)

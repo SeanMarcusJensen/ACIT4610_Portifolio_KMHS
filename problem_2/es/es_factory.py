@@ -31,7 +31,7 @@ class ESFactory:
         self.fitness_evaluator = find_fitness
 
     def create_basic(self, steps: int, population_size: int=1, offspring_size: int=1) -> Strategy:
-        learning_rate = 0.6
+        learning_rate = 1
 
         # Generate Population
         chromosones = np.random.rand(population_size, self.__n_assets)

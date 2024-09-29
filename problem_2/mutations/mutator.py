@@ -6,3 +6,8 @@ class Mutator(ABC):
     @abstractmethod
     def mutate(self, chromosone: np.ndarray) -> np.ndarray:
         pass
+
+    @abstractmethod
+    def copy(self) -> 'Mutator':
+        pass
+        

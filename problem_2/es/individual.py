@@ -31,6 +31,10 @@ class Individual:
         self.chromosone = self.mutator.mutate(self.chromosone)
         self.__normalize_chromosone()
         return self
+    
+    def copy(self) -> 'Individual':
+        new = Individual(self.chromosone, self.mutator.copy())
+        return new
 
     def __normalize_chromosone(self) -> None:
         """ Keep the chromosone within the constraints.

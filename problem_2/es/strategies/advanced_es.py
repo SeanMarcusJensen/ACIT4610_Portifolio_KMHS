@@ -29,6 +29,7 @@ class AdvancedES(Strategy):
         offsprings = []
         while len(offsprings) < self.n_offsprings:
             for ind in population:
+                ind = ind.copy()
                 if np.random.rand() <= 0.3: 
                     offsprings.append(ind.mutate())
                 else:
