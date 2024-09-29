@@ -15,8 +15,9 @@ class Strategy(ABC):
 
             logger.log(
                 generation=gen,
-                max_fitness=max([o.fitness for o in offsprings]),
-                mean_fitness=np.mean([o.fitness for o in offsprings]),
+                sum_chromosone=sum([o.chromosone.sum() for o in new_population]) / len(new_population),
+                max_fitness=max([o.fitness for o in new_population]),
+                mean_fitness=np.mean([o.fitness for o in new_population]),
                 n_offsprings=len(offsprings))
 
             self._population = new_population

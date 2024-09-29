@@ -49,14 +49,14 @@ class ESFactory:
         initial_population = [create_diverse_individual() for _ in range(population_size)]
 
         def fitness_evaluator(individual: Individual) -> float:
-            fitness = self.monthly_returns.dot(individual.chromosone).sum(axis=1).mean()
+            fitness = self.monthly_returns.dot(individual.chromosone).sum().mean()
             individual.set_fitness(fitness)
             return fitness
 
         strategy = advanced_es.AdvancedES(
             initial_population=initial_population,
             recombinator=UniformCrossover(),
-            evaluator=fitness_evaluator,
+            evaluator=self.fitness_evaluator,
             offspring_size=offspring_size,
             es_type=es_type)
 

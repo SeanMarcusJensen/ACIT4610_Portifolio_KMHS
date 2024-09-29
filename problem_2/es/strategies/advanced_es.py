@@ -31,7 +31,7 @@ class AdvancedES(Strategy):
                 new_ind = ind.copy()
                 if np.random.rand() <= self.mutation_rate: 
                     new_ind.mutate()
-                offsprings.append(new_ind)
+                offsprings.append(new_ind.normalize_chromosone())
 
         return offsprings[:self.n_offsprings]
 

@@ -42,3 +42,7 @@ class Individual:
         if sum > 0:
             return chromosone / sum
         return np.zeros_like(chromosone)
+    
+    def normalize_chromosone(self) -> 'Individual':
+        self.chromosone = self.__normalize_chromosone(self.chromosone)
+        return self
