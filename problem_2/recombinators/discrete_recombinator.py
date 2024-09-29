@@ -4,9 +4,10 @@ from es.individual import Individual
 from recombinators.abstraction import Recombinator
 
 class DiscreteRecombinator(Recombinator):
-    def __init__(self, recombination_rate: float = 0.7):
+    def __init__(self, recombination_rate: float = 0.7, uniform_rate: float = 0.5):
         # Initialize the recombinator with a recombination rate (default 0.7)
         self.recombination_rate = recombination_rate
+        self.uniform_rate = uniform_rate
 
     def recombinate(self, population: List[Individual]) -> List[Individual]:
         # This method performs recombination on the entire population
@@ -32,24 +33,16 @@ class DiscreteRecombinator(Recombinator):
         return new_population
 
     def _discrete_recombination(self, parent1: Individual, parent2: Individual) -> tuple[Individual, Individual]:
-        # This method performs discrete recombination between two parents
-        # Create a random binary mask
-        mask = np.random.randint(2, size=len(parent1.chromosone))
-        # Create child chromosomes by selecting genes from parents based on the mask
+        mask = np.random.random(len(parent1.chromosone)) < self.uniform_rate
         child1_chromosone = np.where(mask, parent1.chromosone, parent2.chromosone)
         child2_chromosone = np.where(mask, parent2.chromosone, parent1.chromosone)
         
-        # Create new Individual objects for the children
-        child1 = Individual(self._normalize_chromosone(child1_chromosone), parent1.mutator.copy())
-        child2 = Individual(self._normalize_chromosone(child2_chromosone), parent2.mutator.copy())
+        # Add small random perturbations
+        perturbation = np.random.normal(0, 0.01, size=len(child1_chromosone))
+        child1_chromosone += perturbation
+        child2_chromosone += perturbation
+        
+        child1 = Individual(child1_chromosone, parent1.mutator.copy())
+        child2 = Individual(child2_chromosone, parent2.mutator.copy())
         
         return child1, child2
-    
-    @staticmethod
-    def _normalize_chromosone(chromosone: np.ndarray) -> np.ndarray:
-        # This method normalizes the chromosome to ensure it represents a valid portfolio
-        chromosone = np.clip(chromosone, 0, None)  # Ensure all values are non-negative
-        sum = chromosone.sum()
-        if sum > 0:
-            return chromosone / sum  # Normalize so that the sum is 1
-        return np.zeros_like(chromosone)  # If all values are 0, return an array of zeros

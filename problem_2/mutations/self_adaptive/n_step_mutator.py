@@ -6,7 +6,7 @@ class NStepMutator(Mutator):
         self.threshold = 1e-6
         self.learning_rate = learning_rate
         self.n = objectives
-        self.sigma = np.random.rand(self.n) * 0.2
+        self.sigma = np.random.rand(self.n) * 0.8
         self.tau = 1 / np.sqrt(2 * np.sqrt(self.n))
         self.tau_prime = 1 / np.sqrt(2 * self.n)
 
