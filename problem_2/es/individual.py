@@ -29,7 +29,6 @@ class Individual:
         p(Δxi)= 1 / σ√2π · e^− (Δxi−ξ)^2 / 2σ^2 .
         """
         self.chromosone = self.mutator.mutate(self.chromosone)
-        self.__normalize_chromosone()
         return self
     
     def copy(self) -> 'Individual':
