@@ -6,5 +6,9 @@ class Logger(ABC):
         pass
 
     @abstractmethod
+    def log(self, **kwargs) -> None:
+        pass
+
+    @abstractmethod
     def flush(self) -> None:
         pass

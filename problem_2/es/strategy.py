@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List
 from es.individual import Individual
 from utils.logger import Logger
-
+import numpy as np
 
 class Strategy(ABC):
     def __init__(self, initial_population: List[Individual]) -> None:
@@ -12,8 +12,14 @@ class Strategy(ABC):
         for gen in range(generations):
             offsprings = self.create_offsprings()
             new_population = self.select(offsprings)
-            self._population = new_population
 
+            logger.log(
+                generation=gen,
+                max_fitness=max([o.fitness for o in offsprings]),
+                mean_fitness=np.mean([o.fitness for o in offsprings]),
+                n_offsprings=len(offsprings))
+
+            self._population = new_population
             logger.info(generation=gen, population=new_population)
 
         return self._population

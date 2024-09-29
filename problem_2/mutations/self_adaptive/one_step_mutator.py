@@ -28,4 +28,4 @@ class OneStepMutator(mutations.Mutator):
         Formula: x′i = xi + σ′ · Ni(0, 1)
         where Ni(0, 1) is a set of len(x) values of normal values.
         """
-        return objective + np.random.normal(0, self.sigma)
+        return objective + self.sigma * np.random.normal(0, 1)

@@ -7,7 +7,6 @@ class Individual:
     """
     def __init__(self, chromosone: np.ndarray, mutator: Mutator) -> None:
         self.chromosone = chromosone
-        self.__normalize_chromosone()
         self.mutator = mutator
         self.fitness = 0.0
     
@@ -29,15 +28,16 @@ class Individual:
         p(Δxi)= 1 / σ√2π · e^− (Δxi−ξ)^2 / 2σ^2 .
         """
         self.chromosone = self.mutator.mutate(self.chromosone)
+        self.chromosone = self.__normalize_chromosone(self.chromosone)
         return self
     
     def copy(self) -> 'Individual':
-        new = Individual(self.chromosone, self.mutator.copy())
-        return new
-
-    def __normalize_chromosone(self) -> None:
-        """ Keep the chromosone within the constraints.
-        """
-        self.chromosone = np.clip(self.chromosone, 0, None)
-        sum = self.chromosone.sum()
-        self.chromosone = np.array([(c / sum) if c > 0 else 0 for c in self.chromosone])
+        return Individual(self.chromosone.copy(), self.mutator.copy())
+    
+    @staticmethod
+    def __normalize_chromosone(chromosone: np.ndarray) -> np.ndarray:
+        chromosone = np.clip(chromosone, 0, None)
+        sum = chromosone.sum()
+        if sum > 0:
+            return chromosone / sum
+        return np.zeros_like(chromosone)

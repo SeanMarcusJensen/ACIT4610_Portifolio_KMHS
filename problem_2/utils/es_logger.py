@@ -3,9 +3,14 @@ import matplotlib.pyplot as plt
 
 
 class ESLogger(Logger):
-    def __init__(self) -> None:
+    def __init__(self, verbose: bool = False) -> None:
         self.generations = []
         self.fitness = []
+        self.verbose = verbose
+
+    def log(self, **kwargs) -> None:
+        if self.verbose:
+            print(f"[Log] {kwargs}")
 
     def info(self, **kwargs) -> None:
         if 'generation' in kwargs and 'population' in kwargs:

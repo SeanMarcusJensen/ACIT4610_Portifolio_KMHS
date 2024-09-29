@@ -3,17 +3,27 @@ import mutations
 
 class NStepMutator(mutations.Mutator):
     def __init__(self, learning_rate: float, objectives: int) -> None:
-        self.threshold = 1e8
+        self.threshold = 1e-6
         self.learning_rate = learning_rate
         self.n = objectives
-        self.sigma = np.random.rand(self.n)
+        self.sigma = np.random.rand(self.n) * 0.2
         self.tau = 1 / np.sqrt(2 * np.sqrt(self.n))
         self.tau_prime = 1 / np.sqrt(2 * self.n)
+
+        self.success_count = 0
+        self.total_count = 0
+        self.adaptation_interval = 10  # Adapt every 10 mutations
+        self.adaptation_factor = 0.817  # (0.817)^4 ≈ 0.5
     
     def mutate(self, chromosone: np.ndarray) -> np.ndarray:
         self.threshold = 1 / np.sqrt(len(chromosone))
         self._mutate_sigma()
-        return self._mutate_objectives(chromosone)
+        mutated_chromosone = self._mutate_objectives(chromosone)
+        self.total_count += 1
+        if self.total_count % self.adaptation_interval == 0:
+            self._adapt_sigma()
+
+        return mutated_chromosone
     
     def copy(self) -> mutations.Mutator:
         new = NStepMutator(self.learning_rate, self.n)
@@ -38,3 +48,12 @@ class NStepMutator(mutations.Mutator):
         """
         Ni_mutation = np.random.normal(0, 1, size=self.n)
         return chromosone + (self.sigma * Ni_mutation)
+    
+    def _adapt_sigma(self):
+        success_rate = self.success_count / self.adaptation_interval
+        if success_rate > 1/5:
+            self.sigma *= self.adaptation_factor
+        elif success_rate < 1/5:
+            self.sigma /= self.adaptation_factor
+        self.success_count = 0
+        self.total_count = 0
