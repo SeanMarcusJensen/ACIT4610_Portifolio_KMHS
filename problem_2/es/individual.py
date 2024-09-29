@@ -37,6 +37,7 @@ class Individual:
     @staticmethod
     def __normalize_chromosone(chromosone: np.ndarray) -> np.ndarray:
         chromosone = np.clip(chromosone, 0, None)
+        chromosone = np.maximum(chromosone, 1e-6)
         sum = chromosone.sum()
         if sum > 0:
             return chromosone / sum

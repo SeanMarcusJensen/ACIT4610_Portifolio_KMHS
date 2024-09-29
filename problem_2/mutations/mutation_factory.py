@@ -1,10 +1,14 @@
 from mutations.mutator import Mutator
 from mutations.self_adaptive.n_step_mutator import NStepMutator
 from mutations.self_adaptive.one_step_mutator import OneStepMutator
+from mutations.basic_mutator import BasicMutator
 
 class MutatorFactory:
     def __init__(self) -> None:
         super().__init__()
+
+    def create_basic(self, learning_rate: float) -> Mutator:
+        return BasicMutator(learning_rate=learning_rate)
 
     def create_self_adaptive(self, steps: int, learning_rate: float) -> Mutator:
         if steps <= 1:

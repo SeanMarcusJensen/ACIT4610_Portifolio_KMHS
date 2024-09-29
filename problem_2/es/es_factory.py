@@ -3,7 +3,7 @@ import pandas as pd
 
 from .individual import Individual
 from mutations import MutatorFactory
-from recombinators import NoneCombinator, DiscreteRecombinator
+from recombinators import NoneCombinator, DiscreteRecombinator, UniformCrossover 
 from .strategy import Strategy
 from .strategies import advanced_es
 from .types import ESType
@@ -17,7 +17,9 @@ class ESFactory:
 
         def evaluate_fitness_sharpe(individual: Individual) -> float:
             portfolio_returns = (self.monthly_returns * individual.chromosone).sum(axis=1)
-            return portfolio_returns.mean() / portfolio_returns.std()  # Sharpe ratio (simplified)
+            fit = portfolio_returns.mean() / portfolio_returns.std()  # Sharpe ratio (simplified)
+            individual.set_fitness(fit)
+            return fit
         
         def evaluate_fitness_returns(individual: Individual) -> float:
             # Calculate portfolio returns
@@ -28,6 +30,7 @@ class ESFactory:
             years = len(portfolio_returns) / 12  # Assuming monthly data
             annualized_returns = (1 + cumulative_returns) ** (1 / years) - 1
             
+            individual.set_fitness(annualized_returns)
             return annualized_returns
 
         """ Created an enclosed function! """
@@ -37,7 +40,28 @@ class ESFactory:
             return fitness
 
         self.fitness_evaluator = evaluate_fitness_returns
+    
+    def create(self, es_type: ESType, population_size: int=1, offspring_size: int=1, learning_rate: float=0.1) -> Strategy:
+        def create_diverse_individual():
+            chromosone = np.random.dirichlet(np.ones(self.__n_assets) * 0.5)
+            return Individual(chromosone, self.factory.create_basic(learning_rate=learning_rate))
 
+        initial_population = [create_diverse_individual() for _ in range(population_size)]
+
+        def fitness_evaluator(individual: Individual) -> float:
+            fitness = self.monthly_returns.dot(individual.chromosone).sum(axis=1).mean()
+            individual.set_fitness(fitness)
+            return fitness
+
+        strategy = advanced_es.AdvancedES(
+            initial_population=initial_population,
+            recombinator=UniformCrossover(),
+            evaluator=fitness_evaluator,
+            offspring_size=offspring_size,
+            es_type=es_type)
+
+        return strategy
+ 
     def create_basic(self, steps: int, population_size: int=1, offspring_size: int=1) -> Strategy:
         """Create a basic ES strategy without recombination.
         TODO: Add not self adaptive mutation.
