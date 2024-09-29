@@ -7,6 +7,7 @@ class Individual:
     """
     def __init__(self, chromosone: np.ndarray, mutator: Mutator) -> None:
         self.chromosone = chromosone
+        self.__normalize_chromosone()
         self.mutator = mutator
         self.fitness = 0.0
     
@@ -27,7 +28,6 @@ class Individual:
         Formula:
         p(Δxi)= 1 / σ√2π · e^− (Δxi−ξ)^2 / 2σ^2 .
         """
-
         self.chromosone = self.mutator.mutate(self.chromosone)
         self.__normalize_chromosone()
         return self
