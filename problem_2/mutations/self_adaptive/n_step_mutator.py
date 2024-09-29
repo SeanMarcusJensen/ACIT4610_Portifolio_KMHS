@@ -1,7 +1,7 @@
 import numpy as np
-import mutations
+from mutations.abstraction import Mutator
 
-class NStepMutator(mutations.Mutator):
+class NStepMutator(Mutator):
     def __init__(self, learning_rate: float, objectives: int) -> None:
         self.threshold = 1e-6
         self.learning_rate = learning_rate
@@ -25,7 +25,7 @@ class NStepMutator(mutations.Mutator):
 
         return mutated_chromosone
     
-    def copy(self) -> mutations.Mutator:
+    def copy(self) -> Mutator:
         new = NStepMutator(self.learning_rate, self.n)
         new.sigma = self.sigma
         new.success_count = self.success_count

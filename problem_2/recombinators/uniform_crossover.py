@@ -1,7 +1,7 @@
 import numpy as np
 from typing import List
 from es.individual import Individual
-from .recombinator import Recombinator
+from recombinators.abstraction import Recombinator
 
 class UniformCrossover(Recombinator):
     def __init__(self, recombination_rate: float = 0.7):

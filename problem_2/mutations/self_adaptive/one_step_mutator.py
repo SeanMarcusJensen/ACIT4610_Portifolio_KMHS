@@ -1,7 +1,7 @@
 import numpy as np
-import mutations
+from mutations.abstraction import Mutator
 
-class OneStepMutator(mutations.Mutator):
+class OneStepMutator(Mutator):
     def __init__(self, learning_rate: float) -> None:
         self.learning_rate = learning_rate
         self.sigma = np.random.rand()
@@ -23,7 +23,7 @@ class OneStepMutator(mutations.Mutator):
         return mutated_chromosone
 
             
-    def copy(self) -> mutations.Mutator:
+    def copy(self) -> Mutator:
         new = OneStepMutator(self.learning_rate)
         new.sigma = self.sigma
         new.success_count = self.success_count

@@ -1,6 +1,7 @@
-from mutations.mutator import Mutator
-from mutations.self_adaptive.n_step_mutator import NStepMutator
-from mutations.self_adaptive.one_step_mutator import OneStepMutator
+from mutations.abstraction.mutator import Mutator
+from mutations.self_adaptive import NStepMutator
+from mutations.self_adaptive import OneStepMutator
+
 from mutations.basic_mutator import BasicMutator
 
 class MutatorFactory:

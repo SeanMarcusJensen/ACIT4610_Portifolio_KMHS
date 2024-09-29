@@ -4,7 +4,7 @@ import pandas as pd
 from .individual import Individual
 from mutations import MutatorFactory
 from recombinators import NoneCombinator, DiscreteRecombinator, UniformCrossover 
-from .strategy import Strategy
+from .abstraction.strategy import Strategy
 from .strategies import advanced_es
 from .types import ESType
 

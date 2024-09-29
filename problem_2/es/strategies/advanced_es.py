@@ -1,8 +1,8 @@
-from es.strategy import Strategy
+from recombinators.abstraction import Recombinator
+from es.abstraction import Strategy
 from typing import List, Callable
 from es.individual import Individual
 from utils.logger import Logger
-from recombinators import Recombinator
 import numpy as np
 
 from es.types import ESType
