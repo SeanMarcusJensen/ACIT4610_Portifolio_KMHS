@@ -1,5 +1,5 @@
 import numpy as np
-from mutations import Mutator
+from mutations.abstraction import Mutator
 
 class BasicMutator(Mutator):
     def __init__(self, learning_rate: float) -> None:

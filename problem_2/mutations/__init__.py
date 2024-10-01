@@ -1,3 +1,2 @@
-from .abstraction.mutator import Mutator
 from mutations.basic_factory import BasicMutatorFactory
 from mutations.self_adaptive_factory import SelfAdaptiveMutatorFactory

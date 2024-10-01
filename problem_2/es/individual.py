@@ -1,5 +1,5 @@
 import numpy as np
-from mutations import Mutator
+from mutations.abstraction import Mutator
 
 class Individual:
     """ Represents an individual with
