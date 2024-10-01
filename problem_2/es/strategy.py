@@ -6,6 +6,7 @@ from .individual import Individual
 from evaluators.abstraction import FitnessEvaluator
 from recombinators.abstraction import Recombinator
 from selections.abstraction import Selector
+from utils.logger import Logger
 
 class Strategy:
     def __init__(self,
@@ -19,7 +20,7 @@ class Strategy:
         self.selector = selector
         self.recombinator = recombinator
 
-    def fit(self, genes: int, n_population: int, generations: int, learning_rate: float=0.1) -> List[Individual]:
+    def fit(self, genes: int, n_population: int, generations: int, logger: Logger, learning_rate: float=0.1) -> List[Individual]:
         population = [self.__create_diverse_individual(learning_rate, genes) for _ in range(n_population)]
         for i in population:
             i.set_fitness(self.fitness_evaluator.evaluate(i)) # evaluate
@@ -32,6 +33,8 @@ class Strategy:
                 i.set_fitness(self.fitness_evaluator.evaluate(i)) # evaluate
 
             population= self.selector.select(parents=population, offsprings=offsprings)
+
+            logger.info(generation=gen, best_fitness=max([i.fitness for i in population]))
         
         return population
 
