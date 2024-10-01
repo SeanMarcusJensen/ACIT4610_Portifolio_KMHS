@@ -1,7 +1,7 @@
 from typing import List
 import numpy as np
 
-from mutations import MutatorFactory
+from mutations.abstraction import MutatorFactory
 from .individual import Individual
 from evaluators.abstraction import FitnessEvaluator
 from recombinators.abstraction import Recombinator
@@ -37,5 +37,5 @@ class Strategy:
 
     def __create_diverse_individual(self, learning_rate: float, n_genes: int):
         chromosone = np.random.dirichlet(np.ones(n_genes) * 0.1)
-        return Individual(chromosone, self.mutator_factory.create_basic(learning_rate=learning_rate))
+        return Individual(chromosone, self.mutator_factory.create(learning_rate=learning_rate))
     

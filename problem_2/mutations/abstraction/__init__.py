@@ -1,1 +1,2 @@
 from mutations.abstraction.mutator import Mutator
+from mutations.abstraction.mutation_factory import MutatorFactory
