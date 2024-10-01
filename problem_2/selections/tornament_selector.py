@@ -1,6 +1,6 @@
 import numpy as np
 from typing import List
-from selectors.abstraction import Selector
+from selections.abstraction import Selector
 from es.individual import Individual
 
 class TournamentSelector(Selector):
