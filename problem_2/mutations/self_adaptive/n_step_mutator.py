@@ -2,8 +2,9 @@ import numpy as np
 from mutations.abstraction import Mutator
 
 class NStepMutator(Mutator):
-    def __init__(self, learning_rate: float, objectives: int) -> None:
+    def __init__(self, learning_rate: float, objectives: int, mutation_rate: float) -> None:
         self.threshold = 1e-6
+        self.muatation_rate = mutation_rate
         self.learning_rate = learning_rate
         self.n = objectives
         self.sigma = np.random.rand(self.n) * 0.8
@@ -17,6 +18,10 @@ class NStepMutator(Mutator):
     
     def mutate(self, chromosone: np.ndarray) -> np.ndarray:
         self.threshold = 1 / np.sqrt(len(chromosone))
+
+        if np.random.rand() > self.muatation_rate:
+            return chromosone
+
         self._mutate_sigma()
         mutated_chromosone = self._mutate_objectives(chromosone)
         self.total_count += 1
@@ -26,7 +31,7 @@ class NStepMutator(Mutator):
         return mutated_chromosone
     
     def copy(self) -> Mutator:
-        new = NStepMutator(self.learning_rate, self.n)
+        new = NStepMutator(self.learning_rate, self.n, self.muatation_rate)
         new.sigma = self.sigma
         new.success_count = self.success_count
         new.total_count = self.total_count

@@ -14,7 +14,7 @@ class EvolutionaryFactory:
     def create_basic_es(self, learning_rate: float, recombination_rate: float, mutation_rate: float, n_population: int, n_offsprings: int) -> Strategy:
         recombinator = DiscreteRecombinator(recombination_rate=recombination_rate)
         selector = TournamentSelector(n_population=n_population)
-        mutator = SelfAdaptiveMutatorFactory(steps=self.__n_assets) # TODO: add Mutation Rate to it. and Abstraction
+        mutator = SelfAdaptiveMutatorFactory(self.__n_assets, mutation_rate=mutation_rate)
         evaluator = MaximumReturnsEvaluator(self.monthly_returns)
         strategy = Strategy(mutator, evaluator, selector, recombinator)
         return strategy
