@@ -34,7 +34,7 @@ class Strategy:
 
             population= self.selector.select(parents=population, offsprings=offsprings)
 
-            logger.info(generation=gen, best_fitness=max([i.fitness for i in population]))
+            logger.info(generation=gen, population=population)
         
         return population
 
