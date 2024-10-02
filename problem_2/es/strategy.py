@@ -14,31 +14,33 @@ class Strategy:
                  fitness_evaluator: FitnessEvaluator,
                  selector: Selector,
                  recombinator: Recombinator) -> None:
-
         self.mutator_factory = mutator_factory
         self.fitness_evaluator = fitness_evaluator
         self.selector = selector
         self.recombinator = recombinator
 
-    def fit(self, genes: int, n_population: int, generations: int, logger: Logger, learning_rate: float=0.1) -> List[Individual]:
-        population = [self.__create_diverse_individual(learning_rate, genes) for _ in range(n_population)]
-        for i in population:
-            i.set_fitness(self.fitness_evaluator.evaluate(i)) # evaluate
+    def fit(self, n_genes: int, n_population: int, n_generations: int, logger: Logger) -> List[Individual]:
+        population = self.__create_initial_population(n_genes, n_population)
 
-        for gen in range(generations):
+        for gen in range(n_generations):
             offsprings = self.recombinator.recombinate(population)
             offsprings = [ind.mutate() for ind in offsprings]
 
             for i in offsprings:
                 i.set_fitness(self.fitness_evaluator.evaluate(i)) # evaluate
 
-            population= self.selector.select(parents=population, offsprings=offsprings)
+            population = self.selector.select(parents=population, offsprings=offsprings)
 
             logger.info(generation=gen, population=population)
         
         return population
 
-    def __create_diverse_individual(self, learning_rate: float, n_genes: int):
+    def __create_initial_population(self, n_genes: int, n_population: int) -> List[Individual]:
+        return [self.__create_diverse_individual(n_genes) for _ in range(n_population)]
+
+    def __create_diverse_individual(self, n_genes: int) -> Individual:
         chromosone = np.random.dirichlet(np.ones(n_genes) * 0.1)
-        return Individual(chromosone, self.mutator_factory.create(learning_rate=learning_rate))
+        individual = Individual(chromosone, self.mutator_factory.create())
+        individual.set_fitness(self.fitness_evaluator.evaluate(individual))
+        return individual
     

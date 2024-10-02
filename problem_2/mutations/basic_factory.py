@@ -3,8 +3,9 @@ from mutations.basic_mutator import BasicMutator
 from mutations.abstraction import MutatorFactory
 
 class BasicMutatorFactory(MutatorFactory):
-    def __init__(self) -> None:
+    def __init__(self, learning_rate: float) -> None:
+        self.learning_rate = learning_rate
         super().__init__()
 
-    def create(self, learning_rate: float) -> Mutator:
-        return BasicMutator(learning_rate=learning_rate)
+    def create(self) -> Mutator:
+        return BasicMutator(learning_rate=self.learning_rate)

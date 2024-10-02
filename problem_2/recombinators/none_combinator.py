@@ -4,4 +4,5 @@ from recombinators.abstraction import Recombinator
 
 class NoneCombinator(Recombinator):
     def recombinate(self, parents: List[Individual]) -> List[Individual]:
-        return parents
+        offsprings = [ind.copy() for ind in parents]
+        return offsprings
