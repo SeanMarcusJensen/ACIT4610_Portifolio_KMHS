@@ -1,5 +1,5 @@
 import numpy as np
-from mutations import Mutator
+from mutations.abstraction import Mutator
 
 class Individual:
     """ Represents an individual with
@@ -29,6 +29,7 @@ class Individual:
         """
         self.chromosone = self.mutator.mutate(self.chromosone)
         self.chromosone = self.__normalize_chromosone(self.chromosone)
+        self.set_fitness(0.0)
         return self
     
     def copy(self) -> 'Individual':

@@ -13,4 +13,4 @@ class UniformCrossover(Recombinator):
     def _recombinate_pair(self, parent1: Individual, parent2: Individual) -> Individual:
         mask = np.random.rand(len(parent1.chromosone)) < self.recombination_rate
         child = np.where(mask, parent1.chromosone.copy(), parent2.chromosone.copy())
-        return Individual(child, parent1.mutator.copy())
+        return Individual(child, parent1.mutator.copy()) # TODO: mask the mutation part aswell.

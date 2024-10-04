@@ -2,8 +2,9 @@ import numpy as np
 from mutations.abstraction import Mutator
 
 class OneStepMutator(Mutator):
-    def __init__(self, learning_rate: float) -> None:
+    def __init__(self, learning_rate: float, mutation_rate: float) -> None:
         self.learning_rate = learning_rate
+        self.mutation_rate = mutation_rate
         self.sigma = np.random.rand()
         self.threshold = 1e-6
 
@@ -14,6 +15,10 @@ class OneStepMutator(Mutator):
 
     def mutate(self, chromosone: np.ndarray) -> np.ndarray:
         self.threshold = 1 / np.sqrt(len(chromosone))
+
+        if np.random.rand() > self.mutation_rate:
+            return chromosone
+
         self._mutate_sigma()
         mutated_chromosone = self._mutate_objectives(chromosone)
         self.total_count += 1
@@ -24,7 +29,7 @@ class OneStepMutator(Mutator):
 
             
     def copy(self) -> Mutator:
-        new = OneStepMutator(self.learning_rate)
+        new = OneStepMutator(self.learning_rate, self.mutation_rate)
         new.sigma = self.sigma
         new.success_count = self.success_count
         new.total_count = self.total_count

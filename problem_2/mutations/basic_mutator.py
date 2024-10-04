@@ -1,8 +1,7 @@
-
 import numpy as np
-import mutations
+from mutations.abstraction import Mutator
 
-class BasicMutator(mutations.Mutator):
+class BasicMutator(Mutator):
     def __init__(self, learning_rate: float) -> None:
         self.learning_rate = learning_rate
         self.threshold = 1e-6
@@ -12,7 +11,7 @@ class BasicMutator(mutations.Mutator):
         mutated_chromosone = self._mutate_objectives(chromosone)
         return np.maximum(mutated_chromosone, self.threshold)
             
-    def copy(self) -> mutations.Mutator:
+    def copy(self) -> Mutator:
         new = BasicMutator(self.learning_rate)
         return new
     
