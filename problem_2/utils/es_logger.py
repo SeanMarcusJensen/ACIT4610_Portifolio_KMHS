@@ -22,7 +22,7 @@ class ESLogger(Logger):
         plt.plot(self.fitness, marker='o')
         plt.xlabel('Generation')
         plt.ylabel('Fitness')
-        plt.title('Maximum fitnessscore by generations')
+        plt.title('Maximum fitness-score by generations')
         plt.show()
 
         self.generations = []
