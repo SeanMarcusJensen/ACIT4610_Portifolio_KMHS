@@ -2,6 +2,15 @@ import os
 import pandas as pd
 
 def load_data(root: str) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Loads the data from the given root directory.
+
+    Args:
+        root (str): The root directory of the data folder.
+
+    Returns:
+        tuple[pd.DataFrame, pd.DataFrame]: The road segments[0] and traffic volumes[1] dataframes.
+    """
+
     road_segments = pd.DataFrame()
     traffic_volumes = pd.DataFrame()
 
