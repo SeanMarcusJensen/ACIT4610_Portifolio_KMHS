@@ -1,7 +1,7 @@
 import numpy as np
 from typing import List
 from selections.abstraction import Selector
-from es.individual import Individual
+from ea.individual import Individual
 
 class TournamentSelector(Selector):
     def __init__(self, tournament_size: int = 5, n_population: int = 1, n_offsprings: int = 1) -> None:

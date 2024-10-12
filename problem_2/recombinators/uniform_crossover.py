@@ -1,6 +1,6 @@
 import numpy as np
 from typing import List
-from es.individual import Individual
+from ea.individual import Individual
 from recombinators.abstraction import Recombinator
 
 class UniformCrossover(Recombinator):

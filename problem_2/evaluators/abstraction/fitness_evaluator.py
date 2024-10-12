@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from es.individual import Individual
+from ea.individual import Individual
 
 class FitnessEvaluator(ABC):
     @abstractmethod

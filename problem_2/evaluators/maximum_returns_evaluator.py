@@ -1,5 +1,5 @@
 from evaluators.abstraction.fitness_evaluator import FitnessEvaluator
-from es.individual import Individual
+from ea.individual import Individual
 import pandas as pd
 import numpy as np
 
