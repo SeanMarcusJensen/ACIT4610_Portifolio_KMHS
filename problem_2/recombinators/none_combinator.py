@@ -1,5 +1,5 @@
 from typing import List
-from es.individual import Individual
+from ea.individual import Individual
 from recombinators.abstraction import Recombinator
 
 class NoneCombinator(Recombinator):

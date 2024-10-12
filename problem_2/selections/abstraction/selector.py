@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from es.individual import Individual
+from ea.individual import Individual
 
 class Selector(ABC):
     @abstractmethod
