@@ -11,7 +11,7 @@ class DiscreteRecombinator(Recombinator):
 
     def recombinate(self, population: List[Individual]) -> List[Individual]:
         # This method performs recombination on the entire population
-        new_population = []
+        new_population = [] 
         np.random.shuffle(population)  # Shuffle the population randomly
         
         # Iterate through the population, taking two individuals at a time
