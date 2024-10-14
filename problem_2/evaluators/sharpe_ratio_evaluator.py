@@ -4,6 +4,11 @@ import pandas as pd
 import numpy as np
 
 class SharpeRatioEvaluator(FitnessEvaluator):
+    """Evaluates the fitness of individuals based on the Sharpe Ratio of their portfolios.
+
+    Attributes:
+        monthly_returns (pd.DataFrame): A DataFrame containing the monthly returns of the assets.
+    """
     def __init__(self, monthly_returns: pd.DataFrame) -> None:
         self.monthly_returns = monthly_returns
 

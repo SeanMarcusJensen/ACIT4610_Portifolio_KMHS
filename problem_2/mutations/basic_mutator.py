@@ -2,6 +2,14 @@ import numpy as np
 from mutations.abstraction import Mutator
 
 class BasicMutator(Mutator):
+    """Implements a basic mutation strategy for chromosomes in EAs.
+
+    This mutator applies Gaussian noise to the chromosome's objectives, scaled by a learning rate.
+    
+    Attributes:
+        learning_rate (float): The learning rate that determines the magnitude of mutations.
+        threshold (float): The minimum value allowed for mutated objectives to avoid zero values.
+    """
     def __init__(self, learning_rate: float) -> None:
         self.learning_rate = learning_rate
         self.threshold = 1e-6

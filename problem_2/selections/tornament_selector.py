@@ -4,6 +4,13 @@ from selections.abstraction import Selector
 from ea.individual import Individual
 
 class TournamentSelector(Selector):
+    """Implements a tournament selection strategy for selecting individuals from a population.
+
+    Attributes:
+        _tournament_size (int): The number of individuals participating in each tournament (default is 5).
+        _n_population (int): The number of individuals to retain in the new population (default is 1).
+        _n_offsprings (int): The number of offspring individuals to consider in the selection process (default is 1).
+    """
     def __init__(self, tournament_size: int = 5, n_population: int = 1, n_offsprings: int = 1) -> None:
         self._tournament_size = tournament_size
         self._n_population = n_population

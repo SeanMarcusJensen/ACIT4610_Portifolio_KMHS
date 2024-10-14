@@ -9,6 +9,14 @@ from selections.abstraction import Selector
 from utils.logger import Logger
 
 class Strategy:
+    """Represents a strategy for optimizing individuals in an EA.
+
+    Attributes:
+        mutator_factory (MutatorFactory): A factory for creating mutators used to apply mutations to individuals.
+        fitness_evaluator (FitnessEvaluator): An evaluator that assesses the fitness of individuals.
+        selector (Selector): A selection mechanism for choosing individuals from the population.
+        recombinator (Recombinator): A recombination mechanism for creating offspring from the population.
+    """
     def __init__(self,
                  mutator_factory: MutatorFactory,
                  fitness_evaluator: FitnessEvaluator,

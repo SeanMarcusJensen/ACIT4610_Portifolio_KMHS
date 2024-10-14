@@ -6,6 +6,7 @@ from mutations.basic_mutator import BasicMutator
 from abc import ABC, abstractmethod
 
 class MutatorFactory(ABC):
+    """Abstract factory class for creating mutators used in EAs."""
     def __init__(self) -> None:
         super().__init__()
 

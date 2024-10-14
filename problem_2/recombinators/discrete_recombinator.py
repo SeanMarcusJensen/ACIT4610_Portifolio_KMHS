@@ -4,6 +4,14 @@ from ea.individual import Individual
 from recombinators.abstraction import Recombinator
 
 class DiscreteRecombinator(Recombinator):
+    """Implements a discrete recombination strategy for creating offspring individuals.
+
+    This recombinator combines two parent individuals to produce offspring based on a specified recombination rate and a uniform selection rate for chromosomes.
+
+    Attributes:
+        recombination_rate (float): The probability of performing recombination between parents (default is 0.7).
+        uniform_rate (float): The probability of selecting genes from either parent during recombination (default is 0.5).
+    """
     def __init__(self, recombination_rate: float = 0.7, uniform_rate: float = 0.5):
         # Initialize the recombinator with a recombination rate (default 0.7)
         self.recombination_rate = recombination_rate
@@ -33,6 +41,17 @@ class DiscreteRecombinator(Recombinator):
         return new_population
 
     def _discrete_recombination(self, parent1: Individual, parent2: Individual) -> tuple[Individual, Individual]:
+        """Performs discrete recombination between two parent individuals to create two offspring.
+
+        A mask is created based on the uniform rate, selecting genes from either parent to form the offspring. Small random perturbations are added to the chromosome values.
+
+        Args:
+            parent1 (Individual): The first parent individual.
+            parent2 (Individual): The second parent individual.
+
+        Returns:
+            tuple[Individual, Individual]: A tuple containing the two newly created offspring individuals.
+        """
         mask = np.random.random(len(parent1.chromosone)) < self.uniform_rate
         child1_chromosone = np.where(mask, parent1.chromosone, parent2.chromosone)
         child2_chromosone = np.where(mask, parent2.chromosone, parent1.chromosone)
