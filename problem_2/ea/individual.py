@@ -2,8 +2,12 @@ import numpy as np
 from mutations.abstraction import Mutator
 
 class Individual:
-    """ Represents an individual with
-        'Real Numbered Continous Representation' in the Evolutionary Algorithm.
+    """Represents an individual with 'Real Numbered Continuous Representation' in the Evolutionary Algorithm.
+
+    Attributes:
+        chromosone (np.ndarray): The real-numbered chromosome of the individual.
+        mutator (Mutator): The mutator used to apply mutations to the chromosome.
+        fitness (float): The fitness score of the individual.
     """
     def __init__(self, chromosone: np.ndarray, mutator: Mutator) -> None:
         self.chromosone = chromosone
@@ -37,6 +41,18 @@ class Individual:
     
     @staticmethod
     def __normalize_chromosone(chromosone: np.ndarray) -> np.ndarray:
+        """Normalizes the chromosome so that its elements are scaled to sum to 1.
+
+        - The chromosome values are first clipped to a minimum of 0.
+        - If the total sum of the chromosome values is greater than 0, each value is divided by the total sum.
+        - If the total sum is 0, the method returns an array of zeros.
+
+        Args:
+            chromosone (np.ndarray): The chromosome to be normalized.
+
+        Returns:
+            np.ndarray: The normalized chromosome.
+        """
         chromosone = np.clip(chromosone, 0, None)
         chromosone = np.maximum(chromosone, 1e-6)
         sum = chromosone.sum()

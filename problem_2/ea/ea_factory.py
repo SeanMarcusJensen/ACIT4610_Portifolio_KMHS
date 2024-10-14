@@ -7,6 +7,12 @@ from selections import TournamentSelector
 from ea.strategy import Strategy
 
 class EvolutionaryFactory:
+    """Factory class for creating different evolutionary strategies used for optimizing portfolios based on monthly returns.
+
+    Attributes:
+        monthly_returns (pd.DataFrame): A DataFrame containing the monthly returns of the assets.
+        __n_assets (int): The number of assets in the monthly_returns DataFrame, used in advanced evolutionary strategies.
+    """
     def __init__(self, monthly_returns: pd.DataFrame) -> None:
         self.monthly_returns = monthly_returns
         self.__n_assets = len(monthly_returns.columns)# R^n => R^1
