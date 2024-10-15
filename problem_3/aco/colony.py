@@ -52,13 +52,16 @@ class Vehicle:
 
         self.__current_load += customer.demand
 
-        self.__current_time = max(
-            self.__current_time, customer.ready_time) + customer.service_time  # Wait if the customer is not ready.
+        route = Route(self.__current_customer, customer)
+
+        if (self.__current_time + route.distance()) < customer.ready_time:
+            self.__current_time = customer.ready_time
+        else:
+            self.__current_time += (route.distance() + customer.service_time)
 
         if self.__current_time > customer.due_time:
             self.__time_violations += 1
 
-        route = Route(self.__current_customer, customer)
         self.__route.append(route)
         customer.complete()
         self.__current_customer = customer
@@ -94,6 +97,8 @@ class Colony:
         self.__logger.info("Optimizing the running sheet.")
 
         pheromones = self.__initialize_pheromones(N_ITER, TAU)
+
+        vehicles: List[Vehicle] = []
 
         for t in range(N_ITER):
             self.__logger.debug(f"Starting Iteration({t + 1}/{N_ITER}).")

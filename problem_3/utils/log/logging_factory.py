@@ -1,10 +1,17 @@
 import logging
 from .formatter.logging_formatter import CustomFormatter
 from .abstraction import ILogger
-from .loggers import BaseLogger
+from .loggers import BaseLogger, NoLogger
+from abc import ABC, abstractmethod
 
 
-class LoggerFactory:
+class LoggerFactory(ABC):
+    @abstractmethod
+    def get_logger(self, name: str) -> ILogger:
+        pass
+
+
+class BaseLoggerFactory(LoggerFactory):
     _instance = None  # Class-level variable to hold singleton instance
 
     def __new__(cls):
@@ -20,3 +27,8 @@ class LoggerFactory:
             ch.setFormatter(CustomFormatter())
             logger.addHandler(ch)
         return BaseLogger(logger)
+
+
+class NoLoggerFactory(LoggerFactory):
+    def get_logger(self, name: str) -> ILogger:
+        return NoLogger()
