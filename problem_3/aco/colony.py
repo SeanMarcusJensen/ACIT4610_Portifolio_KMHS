@@ -81,7 +81,7 @@ class Colony:
         self.__logger.info("Creating colony object.")
         self.__distance_table = self.__running_sheet.get_distance_table()
 
-    def optimize(self, N_ITER: int, N_VEHICLES: int, CAPACITY: float, TAU: float, ALPHA: float, BETA: float, Q: float, P: float) -> List[Route]:
+    def optimize(self, N_ITER: int, N_VEHICLES: int, CAPACITY: float, TAU: float, ALPHA: float, BETA: float, Q: float, P: float) -> List[Vehicle]:
         assert N_ITER > 0, "Number of iterations must be greater than 0."
         assert N_VEHICLES > 0, "Number of vehicles must be greater than 0."
         assert CAPACITY > 0.0, "Vehicle capacity must be greater than 0.0."
@@ -140,10 +140,8 @@ class Colony:
                 vehicle.drive_route(update_pheromones)
 
         # Get the vehicle with the minimum distance.
-        min_distance = min(
-            vehicles, key=lambda vehicle: vehicle.total_distance())
 
-        return min_distance.get_route()
+        return vehicles
 
     def __get_next_customer(self, vehicle: Vehicle, pheromones: np.ndarray, ALPHA: float, BETA: float, t: int) -> Customer | None:
         available_customers = self.__running_sheet.get_remaining_customers()
