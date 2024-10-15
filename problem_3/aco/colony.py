@@ -109,35 +109,38 @@ class Colony:
             vehicles = [Vehicle(CAPACITY, self.__running_sheet.depot)
                         for _ in range(N_VEHICLES)]
 
-            for vehicle in vehicles:
-                # Start with random initial customer.
-                available_customers = self.__running_sheet.get_remaining_customers()
-                next_customer = available_customers[np.random.choice(
-                    len(available_customers))]
-
-                vehicle.load(next_customer)
-
-                while not vehicle.is_full():
-                    # The vechicle will load up all the customers until it is full.
-                    next_customer = self.__get_next_customer(
-                        vehicle, pheromones, ALPHA, BETA, t)
-
-                    if next_customer is None:
-                        # Then there are no more customers to load.
+            while not self.__running_sheet.all_completed():
+                for vehicle in vehicles:
+                    if self.__running_sheet.all_completed():
                         break
+                    # Start with random initial customer.
+                    available_customers = self.__running_sheet.get_remaining_customers()
+                    next_customer = available_customers[np.random.choice(
+                        len(available_customers))]
 
                     vehicle.load(next_customer)
 
-                vehicle.load(self.__running_sheet.depot)
+                    while not vehicle.is_full():
+                        # The vechicle will load up all the customers until it is full.
+                        next_customer = self.__get_next_customer(
+                            vehicle, pheromones, ALPHA, BETA, t)
 
-                # Update phromones on the vehicle route.
-                # [Ref: Lecture 6: Page 34] tau_ij (t + 1) ← tau_ij (t + 1) + Q / L_k(t); 1 ≤ Q ≤ 0
-                # Only need to add the last part of the equation because the first part is already done.
-                def update_pheromones(route: Route) -> None:
-                    pheromones[int(route.from_customer.get_id()), int(route.to_customer.get_id(
-                    )), int(t + 1)] += (Q / route.distance())
+                        if next_customer is None:
+                            # Then there are no more customers to load.
+                            break
 
-                vehicle.drive_route(update_pheromones)
+                        vehicle.load(next_customer)
+
+                    vehicle.load(self.__running_sheet.depot)
+
+                    # Update phromones on the vehicle route.
+                    # [Ref: Lecture 6: Page 34] tau_ij (t + 1) ← tau_ij (t + 1) + Q / L_k(t); 1 ≤ Q ≤ 0
+                    # Only need to add the last part of the equation because the first part is already done.
+                    def update_pheromones(route: Route) -> None:
+                        pheromones[int(route.from_customer.get_id()), int(route.to_customer.get_id(
+                        )), int(t + 1)] += (Q / route.distance())
+
+                    vehicle.drive_route(update_pheromones)
 
         # Get the vehicle with the minimum distance.
 
