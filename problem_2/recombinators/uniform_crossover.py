@@ -12,8 +12,9 @@ class UniformCrossover(Recombinator):
     Attributes:
         recombination_rate (float): The probability of selecting each gene from the first parent (default is 0.5).
     """
-    def __init__(self, recombination_rate: float = 0.5):
+    def __init__(self, recombination_rate: float = 0.5, mutation_probability: float = 0.05):
         self.recombination_rate = recombination_rate
+        self.mutation_probability = mutation_probability
 
     def recombinate(self, population: List[Individual]) -> List[Individual]:
         return [self._recombinate_pair(parent1, parent2) for parent1, parent2 in zip(population[::2], population[1::2])]
@@ -33,7 +34,7 @@ class UniformCrossover(Recombinator):
         mask = np.random.rand(len(parent1.chromosome)) < self.recombination_rate
         child = np.where(mask, parent1.chromosome.copy(), parent2.chromosome.copy())
 
-        mutation_mask = np.random.rand(len(child)) < 0.5  #50% mutation chance for each gene
+        mutation_mask = np.random.rand(len(child)) < self.mutation_probability  # Probability of mutation chance for each gene
         mutator = parent1.mutator.copy()
 
         # Mutate only the genes selected by the mutation mask
