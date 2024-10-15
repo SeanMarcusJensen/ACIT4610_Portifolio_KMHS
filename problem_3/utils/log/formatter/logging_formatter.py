@@ -4,8 +4,8 @@ from datetime import datetime
 
 class LogColors:
     RESET = "\033[0m"
-    INFO = "\033[32m"    # Green
-    DEBUG = "\033[34m"   # Blue
+    INFO = "\033[0m"    # White
+    DEBUG = "\033[2m"   # Dim
     WARN = "\033[33m"    # Yellow
     ERROR = "\033[31m"   # Red
     CRITICAL = "\033[41m"  # Red background

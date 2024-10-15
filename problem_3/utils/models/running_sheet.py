@@ -23,7 +23,8 @@ class RunningSheet:
 
     @staticmethod
     def from_pd(data: pd.DataFrame, lf: LoggerFactory) -> 'RunningSheet':
-        customers = [Customer.from_series(row) for _, row in data.iterrows()]
+        customers = [Customer.from_series(row, lf)
+                     for _, row in data.iterrows()]
         depot = customers.pop(0)
         logger = lf.get_logger("RunningSheet")
         logger.info(

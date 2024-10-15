@@ -1,26 +1,32 @@
 import pandas as pd
 import numpy as np
+from utils.log import ILogger, LoggerFactory
+from dataclasses import dataclass
 
 
 class Customer:
-    def __init__(self,
-                 customer_no: int, demand: float,
-                 lat: float, lng: float,
-                 ready_time: float, due_time: float,
-                 service_time: float):
-        self.customer_no: int = int(customer_no - 0)
-        self.demand = demand
-        self.lat = lat
-        self.lng = lng
-        self.ready_time = ready_time
-        self.due_time = due_time
-        self.service_time = service_time
-        self.completed = False
-        print(f"Customer {self.customer_no} created.")
-        print(f"customer_no: {self.customer_no}, demand: {demand}, lat: {lat}, lng: {lng}, ready_time: {ready_time}, due_time: {due_time}, service_time: {service_time}")
+    """_summary_
+
+    Returns:
+        _type_: _description_
+    """
+
+    def __init__(self, customer_no: int, demand: float, lat: float, lng: float, ready_time: float, due_time: float, service_time: float, lf: LoggerFactory):
+        self.customer_no: int = customer_no  # Customer number
+        # Demand of the customer - how much packages they have.
+        self.demand: float = demand
+        self.lat: float = lat  # Latitude
+        self.lng: float = lng  # Longitude
+        # Time at which the customer is ready to be serviced.
+        self.ready_time: float = ready_time
+        # Time by which the customer must be serviced.
+        self.due_time: float = due_time
+        # Time it takes to service the customer.
+        self.service_time: float = service_time
+        self.__logger: ILogger = lf.get_logger(f"Customer({self.customer_no})")
 
     @staticmethod
-    def from_series(series: pd.Series) -> 'Customer':
+    def from_series(series: pd.Series, lf: LoggerFactory) -> 'Customer':
         return Customer(
             customer_no=series['CustomerNO'],
             demand=series['Demand'],
@@ -28,7 +34,8 @@ class Customer:
             lng=series['Lng'],
             ready_time=series['ReadyTime'],
             due_time=series['Due'],
-            service_time=series['ServiceTime']
+            service_time=series['ServiceTime'],
+            lf=lf
         )
 
     def complete(self) -> None:
@@ -41,4 +48,4 @@ class Customer:
         return self.customer_no == other.customer_no
 
     def __repr__(self) -> str:
-        return f"customer_no: {self.customer_no}, demand: {self.demand}, lat: {self.lat}, lng: {self.lng}, ready_time: {self.ready_time}, due_time: {self.due_time}, service_time: {self.service_time}"
+        return f"Customer({self.customer_no})[x: {self.lat}, y: {self.lng}]"
