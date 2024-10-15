@@ -35,7 +35,7 @@ class RunningSheet:
         customers = [self.depot] + self.customers
         return np.array([[Route(customer, other).distance() for other in customers] for customer in customers])
 
-    def get_not_completed(self) -> List[Customer]:
+    def get_remaining_customers(self) -> List[Customer]:
         total_customers = len(self.customers)
         uncompleted_customers = [
             customer for customer in self.customers if not customer.is_completed()]
@@ -46,7 +46,6 @@ class RunningSheet:
     def reset(self) -> None:
         self.logger.debug(
             "Resetting all customers, depot is staying as completed.")
-        self.depot.complete()
         for customer in self.customers:
             customer.completed = False
 

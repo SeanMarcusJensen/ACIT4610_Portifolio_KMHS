@@ -23,6 +23,8 @@ class Customer:
         self.due_time: float = due_time
         # Time it takes to service the customer.
         self.service_time: float = service_time
+        # Whether the customer has been serviced or not.
+        self.completed = False
         self.__logger: ILogger = lf.get_logger(f"Customer({self.customer_no})")
 
     @staticmethod
@@ -37,6 +39,11 @@ class Customer:
             service_time=series['ServiceTime'],
             lf=lf
         )
+
+    def get_id(self) -> int:
+        id = self.customer_no - 1
+        assert id >= 0, "Customer ID must be greater than or equal to 0."
+        return id
 
     def complete(self) -> None:
         self.completed = True
