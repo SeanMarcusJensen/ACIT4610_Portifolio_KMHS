@@ -14,11 +14,10 @@ class TournamentSelector(Selector):
     def __init__(self, tournament_size: int = 5, n_population: int = 1, n_offsprings: int = 1) -> None:
         self._tournament_size = tournament_size
         self._n_population = n_population
-        self._n_oppsprings = n_offsprings
+        self._n_offsprings = n_offsprings
 
     def select(self, parents: List[Individual], offsprings: List[Individual]) -> List[Individual]:
-        population = parents[:self._n_population] + offsprings[:self._n_oppsprings] # mu + lambda
-        population = sorted(population, key=lambda x: x.fitness, reverse=True)
+        population = parents[:self._n_population] + offsprings[:self._n_offsprings] # mu + lambda
 
         new_population = []
         for _ in range(self._n_population):
