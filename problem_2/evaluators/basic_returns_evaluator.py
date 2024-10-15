@@ -13,5 +13,5 @@ class BasicReturnsEvaluator(FitnessEvaluator):
         self.monthly_returns = monthly_returns
 
     def evaluate(self, individual: Individual) -> float:
-        portfolio_returns = (self.monthly_returns * individual.chromosone).sum(axis=1)
+        portfolio_returns = (self.monthly_returns * individual.chromosome).sum(axis=1)
         return portfolio_returns.mean()

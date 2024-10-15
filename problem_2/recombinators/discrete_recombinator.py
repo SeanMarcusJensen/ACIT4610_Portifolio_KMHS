@@ -52,16 +52,16 @@ class DiscreteRecombinator(Recombinator):
         Returns:
             tuple[Individual, Individual]: A tuple containing the two newly created offspring individuals.
         """
-        mask = np.random.random(len(parent1.chromosone)) < self.uniform_rate
-        child1_chromosone = np.where(mask, parent1.chromosone, parent2.chromosone)
-        child2_chromosone = np.where(mask, parent2.chromosone, parent1.chromosone)
+        mask = np.random.random(len(parent1.chromosome)) < self.uniform_rate
+        child1_chromosome = np.where(mask, parent1.chromosome, parent2.chromosome)
+        child2_chromosome = np.where(mask, parent2.chromosome, parent1.chromosome)
         
         # Add small random perturbations
-        perturbation = np.random.normal(0, 0.01, size=len(child1_chromosone))
-        child1_chromosone += perturbation
-        child2_chromosone += perturbation
+        perturbation = np.random.normal(0, 0.01, size=len(child1_chromosome))
+        child1_chromosome += perturbation
+        child2_chromosome += perturbation
         
-        child1 = Individual(child1_chromosone, parent1.mutator.copy())
-        child2 = Individual(child2_chromosone, parent2.mutator.copy())
+        child1 = Individual(child1_chromosome, parent1.mutator.copy())
+        child2 = Individual(child2_chromosome, parent2.mutator.copy())
         
         return child1, child2

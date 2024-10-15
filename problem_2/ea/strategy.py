@@ -47,8 +47,8 @@ class Strategy:
         return [self.__create_diverse_individual(n_genes) for _ in range(n_population)]
 
     def __create_diverse_individual(self, n_genes: int) -> Individual:
-        chromosone = np.random.dirichlet(np.ones(n_genes) * 0.1)
-        individual = Individual(chromosone, self.mutator_factory.create())
+        chromosome = np.random.dirichlet(np.ones(n_genes) * 0.1)
+        individual = Individual(chromosome, self.mutator_factory.create())
         individual.set_fitness(self.fitness_evaluator.evaluate(individual))
         return individual
     

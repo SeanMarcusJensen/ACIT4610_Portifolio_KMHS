@@ -30,8 +30,8 @@ class UniformCrossover(Recombinator):
         Returns:
             Individual: The newly created offspring individual resulting from the crossover.
         """
-        mask = np.random.rand(len(parent1.chromosone)) < self.recombination_rate
-        child = np.where(mask, parent1.chromosone.copy(), parent2.chromosone.copy())
+        mask = np.random.rand(len(parent1.chromosome)) < self.recombination_rate
+        child = np.where(mask, parent1.chromosome.copy(), parent2.chromosome.copy())
 
         mutation_mask = np.random.rand(len(child)) < 0.5  #50% mutation chance for each gene
         mutator = parent1.mutator.copy()

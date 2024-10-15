@@ -14,17 +14,17 @@ class BasicMutator(Mutator):
         self.learning_rate = learning_rate
         self.threshold = 1e-6
 
-    def mutate(self, chromosone: np.ndarray) -> np.ndarray:
-        self.threshold = 1 / np.sqrt(len(chromosone))
-        mutated_chromosone = self._mutate_objectives(chromosone)
-        return np.maximum(mutated_chromosone, self.threshold)
+    def mutate(self, chromosome: np.ndarray) -> np.ndarray:
+        self.threshold = 1 / np.sqrt(len(chromosome))
+        mutated_chromosome = self._mutate_objectives(chromosome)
+        return np.maximum(mutated_chromosome, self.threshold)
             
     def copy(self) -> Mutator:
         new = BasicMutator(self.learning_rate)
         return new
     
     def _mutate_objectives(self, objective: np.ndarray) -> np.ndarray:
-        """ Update the objectives in chromosone.
+        """ Update the objectives in chromosome.
         Formula: x′i = xi + σ′ · Ni(0, 1)
         where Ni(0, 1) is a set of len(x) values of normal values.
         """

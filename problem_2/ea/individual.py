@@ -5,12 +5,12 @@ class Individual:
     """Represents an individual with 'Real Numbered Continuous Representation' in the Evolutionary Algorithm.
 
     Attributes:
-        chromosone (np.ndarray): The real-numbered chromosome of the individual.
+        chromosome (np.ndarray): The real-numbered chromosome of the individual.
         mutator (Mutator): The mutator used to apply mutations to the chromosome.
         fitness (float): The fitness score of the individual.
     """
-    def __init__(self, chromosone: np.ndarray, mutator: Mutator) -> None:
-        self.chromosone = chromosone
+    def __init__(self, chromosome: np.ndarray, mutator: Mutator) -> None:
+        self.chromosome = chromosome
         self.mutator = mutator
         self.fitness = 0.0
     
@@ -31,16 +31,16 @@ class Individual:
         Formula:
         p(Δxi)= 1 / σ√2π · e^− (Δxi−ξ)^2 / 2σ^2 .
         """
-        self.chromosone = self.mutator.mutate(self.chromosone)
-        self.chromosone = self.__normalize_chromosone(self.chromosone)
+        self.chromosome = self.mutator.mutate(self.chromosome)
+        self.chromosome = self.__normalize_chromosome(self.chromosome)
         self.set_fitness(0.0)
         return self
     
     def copy(self) -> 'Individual':
-        return Individual(self.chromosone.copy(), self.mutator.copy())
+        return Individual(self.chromosome.copy(), self.mutator.copy())
     
     @staticmethod
-    def __normalize_chromosone(chromosone: np.ndarray) -> np.ndarray:
+    def __normalize_chromosome(chromosome: np.ndarray) -> np.ndarray:
         """Normalizes the chromosome so that its elements are scaled to sum to 1.
 
         - The chromosome values are first clipped to a minimum of 0.
@@ -48,18 +48,18 @@ class Individual:
         - If the total sum is 0, the method returns an array of zeros.
 
         Args:
-            chromosone (np.ndarray): The chromosome to be normalized.
+            chromosome (np.ndarray): The chromosome to be normalized.
 
         Returns:
             np.ndarray: The normalized chromosome.
         """
-        chromosone = np.clip(chromosone, 0, None)
-        chromosone = np.maximum(chromosone, 1e-6)
-        sum = chromosone.sum()
+        chromosome = np.clip(chromosome, 0, None)
+        chromosome = np.maximum(chromosome, 1e-6)
+        sum = chromosome.sum()
         if sum > 0:
-            return chromosone / sum
-        return np.zeros_like(chromosone)
+            return chromosome / sum
+        return np.zeros_like(chromosome)
     
-    def normalize_chromosone(self) -> 'Individual':
-        self.chromosone = self.__normalize_chromosone(self.chromosone)
+    def normalize_chromosome(self) -> 'Individual':
+        self.chromosome = self.__normalize_chromosome(self.chromosome)
         return self
