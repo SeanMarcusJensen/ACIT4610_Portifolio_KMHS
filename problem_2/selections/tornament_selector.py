@@ -11,13 +11,19 @@ class TournamentSelector(Selector):
         _n_population (int): The number of individuals to retain in the new population (default is 1).
         _n_offsprings (int): The number of offspring individuals to consider in the selection process (default is 1).
     """
-    def __init__(self, tournament_size: int = 5, n_population: int = 1, n_offsprings: int = 1) -> None:
+    def __init__(self, tournament_size: int = 5, n_population: int = 1, n_offsprings: int = 1, selection_strategy: str = 'mu_plus_lambda') -> None:
         self._tournament_size = tournament_size
         self._n_population = n_population
         self._n_offsprings = n_offsprings
+        self.selection_strategy = selection_strategy
 
     def select(self, parents: List[Individual], offsprings: List[Individual]) -> List[Individual]:
-        population = parents[:self._n_population] + offsprings[:self._n_offsprings] # mu + lambda
+        if self.selection_strategy == 'mu_plus_lambda':
+            population = parents[:self._n_population] + offsprings[:self._n_offsprings] # mu + lambda
+        elif self.selection_strategy == 'mu_comma_lambda':
+            population = parents[:self._n_population] # mu , lambda
+        else:
+            raise ValueError("Choose 'mu_plus_lambda' or 'mu_lambda'.")
 
         new_population = []
         for _ in range(self._n_population):
