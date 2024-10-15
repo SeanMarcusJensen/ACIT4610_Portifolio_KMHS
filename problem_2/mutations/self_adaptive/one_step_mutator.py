@@ -2,6 +2,18 @@ import numpy as np
 from mutations.abstraction import Mutator
 
 class OneStepMutator(Mutator):
+    """Implements a one-step mutation strategy for chromosomes in EAs.
+
+    Attributes:
+        learning_rate (float): The learning rate that determines the magnitude of mutations.
+        mutation_rate (float): The probability of applying mutation to the chromosome.
+        threshold (float): The minimum value allowed for mutated objectives to avoid zero values.
+        sigma (float): The mutation step size.
+        success_count (int): The count of successful mutations.
+        total_count (int): The total count of mutations performed.
+        adaptation_interval (int): The interval at which sigma is adapted.
+        adaptation_factor (float): The factor used to adjust sigma.
+    """
     def __init__(self, learning_rate: float, mutation_rate: float) -> None:
         self.learning_rate = learning_rate
         self.mutation_rate = mutation_rate
