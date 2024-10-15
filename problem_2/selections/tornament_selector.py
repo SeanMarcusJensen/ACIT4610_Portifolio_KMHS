@@ -21,7 +21,7 @@ class TournamentSelector(Selector):
 
         new_population = []
         for _ in range(self._n_population):
-            tournament = np.random.choice(population, size=self._tournament_size, replace=False)
+            tournament = np.random.choice(population, size=self._tournament_size, replace=False) # type: ignore
             winner = max(tournament, key=lambda x: x.fitness)
             new_population.append(winner)
 
