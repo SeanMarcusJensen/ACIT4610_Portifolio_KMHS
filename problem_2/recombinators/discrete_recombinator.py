@@ -1,4 +1,5 @@
 import numpy as np
+import random
 from typing import List
 from ea.individual import Individual
 from recombinators.abstraction import Recombinator
@@ -20,14 +21,14 @@ class DiscreteRecombinator(Recombinator):
     def recombinate(self, population: List[Individual]) -> List[Individual]:
         # This method performs recombination on the entire population
         new_population = []
-        np.random.shuffle(population)  # Shuffle the population randomly
+        random.shuffle(population)  # Shuffle the population randomly
         
         # Iterate through the population, taking two individuals at a time
         for i in range(0, len(population), 2):
             if i + 1 < len(population):
                 # If we have a pair of individuals
                 parent1, parent2 = population[i], population[i + 1]
-                if np.random.random() < self.recombination_rate:
+                if random.random() < self.recombination_rate:
                     # Perform recombination with probability equal to recombination_rate
                     child1, child2 = self._discrete_recombination(parent1, parent2)
                     new_population.extend([child1, child2])
@@ -56,10 +57,11 @@ class DiscreteRecombinator(Recombinator):
         child1_chromosome = np.where(mask, parent1.chromosome, parent2.chromosome)
         child2_chromosome = np.where(mask, parent2.chromosome, parent1.chromosome)
         
-        # Add small random perturbations
-        perturbation = np.random.normal(0, 0.01, size=len(child1_chromosome))
-        child1_chromosome += perturbation
-        child2_chromosome += perturbation
+        # Add small random perturbations to each child
+        perturbation1 = np.random.normal(0, 0.01, size=len(child1_chromosome))
+        perturbation2 = np.random.normal(0, 0.01, size=len(child1_chromosome))
+        child1_chromosome += perturbation1
+        child2_chromosome += perturbation2
         
         child1 = Individual(child1_chromosome, parent1.mutator.copy())
         child2 = Individual(child2_chromosome, parent2.mutator.copy())
