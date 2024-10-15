@@ -1,9 +1,10 @@
+from utils.models import Customer, Route, RunningSheet
+from typing import List
 from utils.models import RunningSheet, Customer, Route
 from utils.log import LoggerFactory
 
 import numpy as np
 from numpy.typing import NDArray
-from dataclasses import dataclass
 from typing import List, Callable
 
 
@@ -16,6 +17,9 @@ class Vehicle:
         self.__route: List[Route] = []
 
         self.__time_violations = 0
+
+    def get_route(self) -> List[Route]:
+        return self.__route
 
     def is_full(self) -> bool:
         return self.__current_load >= self.__capacity
@@ -77,7 +81,7 @@ class Colony:
         self.__logger.info("Creating colony object.")
         self.__distance_table = self.__running_sheet.get_distance_table()
 
-    def optimize(self, N_ITER: int, N_VEHICLES: int, CAPACITY: float, TAU: float, ALPHA: float, BETA: float, Q: float, P: float) -> RunningSheet:
+    def optimize(self, N_ITER: int, N_VEHICLES: int, CAPACITY: float, TAU: float, ALPHA: float, BETA: float, Q: float, P: float) -> List[Route]:
         assert N_ITER > 0, "Number of iterations must be greater than 0."
         assert N_VEHICLES > 0, "Number of vehicles must be greater than 0."
         assert CAPACITY > 0.0, "Vehicle capacity must be greater than 0.0."
@@ -130,12 +134,16 @@ class Colony:
                 # [Ref: Lecture 6: Page 34] tau_ij (t + 1) ← tau_ij (t + 1) + Q / L_k(t); 1 ≤ Q ≤ 0
                 # Only need to add the last part of the equation because the first part is already done.
                 def update_pheromones(route: Route) -> None:
-                    pheromones[route.from_customer.get_id(), route.to_customer.get_id(
-                    ), t + 1] += (Q / route.distance())
+                    pheromones[int(route.from_customer.get_id()), int(route.to_customer.get_id(
+                    )), int(t + 1)] += (Q / route.distance())
 
                 vehicle.drive_route(update_pheromones)
 
-        return self.__running_sheet
+        # Get the vehicle with the minimum distance.
+        min_distance = min(
+            vehicles, key=lambda vehicle: vehicle.total_distance())
+
+        return min_distance.get_route()
 
     def __get_next_customer(self, vehicle: Vehicle, pheromones: np.ndarray, ALPHA: float, BETA: float, t: int) -> Customer | None:
         available_customers = self.__running_sheet.get_remaining_customers()
@@ -156,8 +164,20 @@ class Colony:
                 f"Only one customer available for vehicle.")
             return allowed_customers[0]
 
-        probabilities = self.__get_probability_list(
-            vehicle, allowed_customers, pheromones, ALPHA, BETA, t)
+        def calculate_prob(distance_table: np.ndarray, i: int, j: int) -> float:
+            self.__logger.debug(
+                f"Calculating probability for {i} -> {j}. shape({pheromones.shape}), dtype: {pheromones.dtype}.")
+            self.__logger.debug(
+                f"Distance table shape: {distance_table.shape}, d={distance_table.dtype}.")
+            objective = distance_table[int(i), int(j)] ** BETA
+            nominator = (pheromones[int(i), int(
+                j), int(t)] ** ALPHA) * objective
+            denominator = sum((pheromones[int(i), int(k.get_id(
+            )), int(t)] ** ALPHA) * self.__distance_table[int(i), int(k.get_id())] ** BETA for k in allowed_customers)
+            return nominator / denominator
+
+        probabilities = np.array([calculate_prob(self.__distance_table,
+                                                 vehicle.get_current_customer_id(), j.get_id()) for j in allowed_customers])
 
         self.__logger.debug(f"Probabilities: {probabilities}")
 
@@ -196,21 +216,25 @@ class Colony:
             return 1 / self.__distance_table[i, j]
 
         # Fetch tau_ij (pheromone level) from the pheromone matrix
-        def tau_ij(i: int, j: int, t: int) -> float:
+        def tau_ij(i: int, j: int) -> float:
             self.__logger.debug(
-                f"Fetching pheromone for {i} -> {j} at iteration {t}. shape({pheromones.shape})")
-            pheromone_value = pheromones[i, j, t]
+                f"Fetching pheromone for {i} -> {j}. shape({pheromones.shape}), dtype: {pheromones.dtype}.")
+            phero = pheromones[:, :, t]
+            self.__logger.debug(
+                f"Pheromones shape: {phero.shape}, d={phero.dtype}. indexing {i}, {j}.")
+
+            pheromone_value = phero[i, j]
             self.__logger.debug(f"Pheromone value: {pheromone_value}.")
             return pheromone_value
 
         # Calculate the denominator of the formula for normalization
         i = vehicle.get_current_customer_id()
-        denom = sum(tau_ij(i, k.get_id(), t) ** ALPHA *
+        denom = sum(tau_ij(i, k.get_id()) ** ALPHA *
                     eta_ij(i, k.get_id()) ** BETA for k in allowed)
 
         # Calculate the probability for each allowed customer
         probabilities = np.array([
-            tau_ij(i, j.get_id(), t) ** ALPHA * eta_ij(i, j.get_id()) ** BETA / denom for j in allowed
+            tau_ij(i, j.get_id()) ** ALPHA * eta_ij(i, j.get_id()) ** BETA / denom for j in allowed
         ])
 
         return probabilities
