@@ -21,9 +21,9 @@ class TournamentSelector(Selector):
         if self.selection_strategy == 'mu_plus_lambda':
             population = parents[:self._n_population] + offsprings[:self._n_offsprings] # mu + lambda
         elif self.selection_strategy == 'mu_comma_lambda':
-            population = parents[:self._n_population] # mu , lambda
+            population = offsprings[:self._n_offsprings] # mu , lambda
         else:
-            raise ValueError("Choose 'mu_plus_lambda' or 'mu_lambda'.")
+            raise ValueError("Choose 'mu_plus_lambda' or 'mu_comma_lambda' in the EvolutionaryFactory class.")
 
         new_population = []
         for _ in range(self._n_population):
