@@ -66,7 +66,7 @@ class EvolutionaryFactory:
         recombinator = DiscreteRecombinator(recombination_rate=recombination_rate)
         mutator = SelfAdaptiveMutatorFactory(learning_rate=learning_rate, steps=self.__n_assets, mutation_rate=mutation_rate)
         evaluator = MaximumReturnsEvaluator(self.monthly_returns)
-        selector = TournamentSelector(n_population=n_population, n_offsprings=n_offsprings)
+        selector = TournamentSelector(n_population=n_population, n_offsprings=n_offsprings, selection_strategy='mu_plus_lambda')
 
         strategy = Strategy(mutator, evaluator, selector, recombinator)
         return strategy

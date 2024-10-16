@@ -15,8 +15,9 @@ def analyze_returns(**kwargs):
             'Stability (Std Return)': std_return
         })
     
-    result_df = pd.DataFrame(returns_analysis)
-    display(result_df)
+    returns_comparison_table = pd.DataFrame(returns_analysis)
+    print('Returns comparison table:')
+    display(returns_comparison_table)
     
     # Plot comparison of returns
     plt.figure(figsize=(12, 6))
@@ -31,46 +32,32 @@ def analyze_returns(**kwargs):
 
 
 
-def analyze_convergence(**algorithm_data):
+def analyze_convergence(**kwargs):
     """Analyse and compare how quickly each algorithm converges to an optimal or near-optimal solution."""
-    # Create an empty list to collect results
-    comparison_results = []
+    convergence_analysis = []
 
-    # Iterate through each algorithm's data and collect fitness and generations to best fitness
-    for name, data in algorithm_data.items():
+    # Iterate through each algorithm's data and get fitness and generations to best fitness
+    for name, data in kwargs.items():
         avg_fitness = data['returns'].mean()
         avg_generations_to_best = data['generations_to_best_fitness'].mean()
         
-        # Append results to list
-        comparison_results.append({
+        convergence_analysis.append({
             'Algorithm': name,
             'Average Fitness': avg_fitness,
             'Avg Generations to Best Fitness': avg_generations_to_best
         })
     
-    # Create a DataFrame from the results
-    comparison_table = pd.DataFrame(comparison_results)
+    convergence_comparison_table = pd.DataFrame(convergence_analysis)
+    print('Convergence comparison table:')
+    display(convergence_comparison_table)
+
+    plt.figure(figsize=(12, 6))
+    for i, row in convergence_comparison_table.iterrows():
+        plt.scatter(row['Avg Generations to Best Fitness'], row['Average Fitness'], label=row['Algorithm'], s=100)
+        plt.text(row['Avg Generations to Best Fitness'] + 0.25, row['Average Fitness'], row['Algorithm'], fontsize=8)
     
-    # Output the table
-    print("Comparison Table:")
-    print(comparison_table)
-
-    # Visualization: Fitness and Generations to Best Fitness
-    fig, ax1 = plt.subplots()
-
-    ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-
-    # Plot Average Fitness on the left axis
-    ax1.bar(comparison_table['Algorithm'], comparison_table['Average Fitness'], color='g', width=0.4, align='center')
-    ax1.set_xlabel('Algorithm')
-    ax1.set_ylabel('Average Fitness', color='g')
-    
-    # Plot Generations to Best Fitness on the right axis
-    ax2.plot(comparison_table['Algorithm'], comparison_table['Avg Generations to Best Fitness'], color='b', marker='o', linestyle='--')
-    ax2.set_ylabel('Avg Generations to Best Fitness', color='b')
-
-    plt.title('Algorithm Comparison: Fitness vs Generations to Best Fitness')
-    fig.tight_layout()  # otherwise the right y-label is slightly clipped
+    plt.xlabel('Avg Generations to Best Fitness')
+    plt.ylabel('Average Fitness')
+    plt.title('Convergence analysis: Avg Fitness vs Avg Generations to Best Fitness')
+    plt.legend(bbox_to_anchor=(1.25, 0.5))
     plt.show()
-    
-    return comparison_table
