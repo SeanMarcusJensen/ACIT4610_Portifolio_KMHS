@@ -30,7 +30,7 @@ class Customer:
     @staticmethod
     def from_series(series: pd.Series, lf: LoggerFactory) -> 'Customer':
         return Customer(
-            customer_no=series['CustomerNO'],
+            customer_no=int(series['CustomerNO']),
             demand=series['Demand'],
             lat=series['Lat'],
             lng=series['Lng'],

@@ -15,6 +15,7 @@ class RunningSheet:
     depot: Customer
     customers: List[Customer]
     logger: ILogger
+    distance_table: npt.NDArray[np.float64]
 
     @staticmethod
     def from_csv(abs_path: str, lf: LoggerFactory) -> 'RunningSheet':
@@ -25,15 +26,17 @@ class RunningSheet:
     def from_pd(data: pd.DataFrame, lf: LoggerFactory) -> 'RunningSheet':
         customers = [Customer.from_series(row, lf)
                      for _, row in data.iterrows()]
+
+        table = np.array([[Route.calculate_distance(customer, other)
+                         for other in customers] for customer in customers])
         depot = customers.pop(0)
         logger = lf.get_logger("RunningSheet")
         logger.info(
             f"Creating RunningSheet object with [{len(customers)}] customers.")
-        return RunningSheet(depot, customers, logger)
+        return RunningSheet(depot, customers, logger, table)
 
     def get_distance_table(self) -> npt.NDArray[np.float64]:
-        customers = [self.depot] + self.customers
-        return np.array([[Route(customer, other).distance() for other in customers] for customer in customers])
+        return self.distance_table
 
     def get_remaining_customers(self) -> List[Customer]:
         total_customers = len(self.customers)

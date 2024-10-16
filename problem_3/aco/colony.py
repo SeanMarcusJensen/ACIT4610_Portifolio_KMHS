@@ -9,12 +9,13 @@ from typing import List, Callable
 
 
 class Vehicle:
-    def __init__(self, capacity: float, depot: Customer) -> None:
+    def __init__(self, capacity: float, sheet: RunningSheet) -> None:
         self.__capacity = capacity
         self.__current_load: float = 0.0
         self.__current_time: float = 0.0
-        self.__current_customer: Customer = depot
+        self.__current_customer: Customer = sheet.depot
         self.__route: List[Route] = []
+        self.__sheet = sheet
 
         self.__time_violations = 0
 
@@ -30,7 +31,7 @@ class Vehicle:
     def can_load(self, customer: Customer, shift_end: float) -> bool:
         can_do_load = self.__current_load + customer.demand <= self.__capacity
         can_do_in_time = self.__current_time + customer.service_time + \
-            Route(self.__current_customer, customer).distance() + \
+            self.__sheet.get_distance_table()[self.__current_customer.get_id(), customer.get_id()] + \
             customer.service_time <= shift_end
         return can_do_load and can_do_in_time
 
@@ -52,12 +53,15 @@ class Vehicle:
 
         self.__current_load += customer.demand
 
-        route = Route(self.__current_customer, customer)
+        table = self.__sheet.get_distance_table()
+        distance = table[self.__current_customer.get_id(), customer.get_id()]
 
-        if (self.__current_time + route.distance()) < customer.ready_time:
+        route = Route(self.__current_customer, customer, distance)
+
+        if (self.__current_time + distance) < customer.ready_time:
             self.__current_time = customer.ready_time
         else:
-            self.__current_time += (route.distance() + customer.service_time)
+            self.__current_time += (distance + customer.service_time)
 
         if self.__current_time > customer.due_time:
             self.__time_violations += 1
@@ -74,7 +78,7 @@ class Vehicle:
         return self.__time_violations
 
     def total_distance(self) -> float:
-        return sum(route.distance() for route in self.__route)
+        return sum(route.distance for route in self.__route)
 
 
 class Colony:
@@ -111,14 +115,16 @@ class Colony:
             # Doing it before because of convenience.
             pheromones[:, :, t + 1] = (1 - P) * pheromones[:, :, t]
 
-            vehicles = [Vehicle(CAPACITY, self.__running_sheet.depot)
+            vehicles = [Vehicle(CAPACITY, self.__running_sheet)
                         for _ in range(N_VEHICLES)]
 
             while not self.__running_sheet.all_completed():
                 for vehicle in vehicles:
                     if self.__running_sheet.all_completed():
                         break
+
                     # Start with random initial customer.
+                    # TODO: Might want to change this to pick the customer with the earliest ready time.
                     available_customers = self.__running_sheet.get_remaining_customers()
                     next_customer = available_customers[np.random.choice(
                         len(available_customers))]
@@ -143,7 +149,7 @@ class Colony:
                     # Only need to add the last part of the equation because the first part is already done.
                     def update_pheromones(route: Route) -> None:
                         pheromones[int(route.from_customer.get_id()), int(route.to_customer.get_id(
-                        )), int(t + 1)] += (Q / route.distance())
+                        )), int(t + 1)] += (Q / route.distance)
 
                     vehicle.drive_route(update_pheromones)
 
@@ -170,7 +176,7 @@ class Colony:
                 f"Only one customer available for vehicle.")
             return allowed_customers[0]
 
-        def calculate_prob(distance_table: np.ndarray, i: int, j: int) -> float:
+        def calculate_prob(distance_table: np.ndarray, i: int, j: int, violations: int) -> float:
             self.__logger.debug(
                 f"Calculating probability for {i} -> {j}. shape({pheromones.shape}), dtype: {pheromones.dtype}.")
             self.__logger.debug(
@@ -183,7 +189,7 @@ class Colony:
             return nominator / denominator
 
         probabilities = np.array([calculate_prob(self.__distance_table,
-                                                 vehicle.get_current_customer_id(), j.get_id()) for j in allowed_customers])
+                                                 vehicle.get_current_customer_id(), j.get_id(), vehicle.total_time_violations()) for j in allowed_customers])
 
         self.__logger.debug(f"Probabilities: {probabilities}")
 
@@ -198,52 +204,6 @@ class Colony:
         assert node != -1, "No node was selected."
 
         return allowed_customers[node]
-
-    def __get_probability_list(self, vehicle: Vehicle, allowed: List[Customer], pheromones: np.ndarray, ALPHA: float, BETA: float, t: int) -> NDArray[np.float64]:
-        """
-        Calculate the probability of selecting each allowed customer based on pheromone levels and distance.
-
-        Formula: p_ij = (tau_ij^ALPHA * eta_ij^BETA) / Σ_{k ∈ allowed}(tau_ik^ALPHA * eta_ik^BETA)
-
-        Args:
-            vehicle (Vehicle): The vehicle making the selection.
-            allowed (List[Customer]): List of customers that the vehicle is allowed to load.
-            pheromones (NDArray[np.float64]): Pheromone matrix with shape (num_customers, num_customers, num_iterations).
-            ALPHA (float): Influence of pheromones on the probability.
-            BETA (float): Influence of distance (visibility) on the probability.
-            t (int): Current iteration index.
-
-        Returns:
-            NDArray[np.float64]: Array of probabilities for each customer in the allowed list.
-        """
-        # Calculate eta_ij (visibility) which is based on the inverse of the distance
-        def eta_ij(i: int, j: int) -> float:
-            self.__logger.debug(f"Calculating visibility for {i} -> {j}.")
-            return 1 / self.__distance_table[i, j]
-
-        # Fetch tau_ij (pheromone level) from the pheromone matrix
-        def tau_ij(i: int, j: int) -> float:
-            self.__logger.debug(
-                f"Fetching pheromone for {i} -> {j}. shape({pheromones.shape}), dtype: {pheromones.dtype}.")
-            phero = pheromones[:, :, t]
-            self.__logger.debug(
-                f"Pheromones shape: {phero.shape}, d={phero.dtype}. indexing {i}, {j}.")
-
-            pheromone_value = phero[i, j]
-            self.__logger.debug(f"Pheromone value: {pheromone_value}.")
-            return pheromone_value
-
-        # Calculate the denominator of the formula for normalization
-        i = vehicle.get_current_customer_id()
-        denom = sum(tau_ij(i, k.get_id()) ** ALPHA *
-                    eta_ij(i, k.get_id()) ** BETA for k in allowed)
-
-        # Calculate the probability for each allowed customer
-        probabilities = np.array([
-            tau_ij(i, j.get_id()) ** ALPHA * eta_ij(i, j.get_id()) ** BETA / denom for j in allowed
-        ])
-
-        return probabilities
 
     def __initialize_pheromones(self, t: int, TAU: float) -> NDArray[np.float64]:
         """ Creates a matrix of pheromones for the colony.

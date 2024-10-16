@@ -8,16 +8,18 @@ from dataclasses import dataclass
 class Route:
     from_customer: Customer
     to_customer: Customer
+    distance: float
 
-    def distance(self) -> float:
+    @staticmethod
+    def calculate_distance(from_c: Customer, to_c: Customer) -> float:
         """ Calculates the distance between two customers.
         Formula: sqrt((x2 - x1)^2 + (y2 - y1)^2)
 
         Returns:
             float: The distance between the two customers.
         """
-        return np.sqrt((self.from_customer.lat - self.to_customer.lat) ** 2 +
-                       (self.from_customer.lng - self.to_customer.lng) ** 2)
+        return np.sqrt((from_c.lat - to_c.lat) ** 2 +
+                       (from_c.lng - to_c.lng) ** 2)
 
     def get_time_of_arrival(self, current_time: float) -> float:
         """ Calculates the time of arrival to the next customer from the current customer.
@@ -28,7 +30,7 @@ class Route:
         Returns:
             float: The time at which the vehicle will arrive at the next customer.
         """
-        return current_time + self.distance()
+        return current_time + self.distance
 
     def get_time_of_completion(self, current_time: float) -> float:
         """ Calculates the time of completion of the next customer from the current customer.
