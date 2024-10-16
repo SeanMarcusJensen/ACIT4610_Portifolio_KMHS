@@ -181,11 +181,15 @@ class Colony:
                 f"Calculating probability for {i} -> {j}. shape({pheromones.shape}), dtype: {pheromones.dtype}.")
             self.__logger.debug(
                 f"Distance table shape: {distance_table.shape}, d={distance_table.dtype}.")
+
             objective = distance_table[int(i), int(j)] ** BETA
+
             nominator = (pheromones[int(i), int(
                 j), int(t)] ** ALPHA) * objective
+
             denominator = sum((pheromones[int(i), int(k.get_id(
             )), int(t)] ** ALPHA) * self.__distance_table[int(i), int(k.get_id())] ** BETA for k in allowed_customers)
+
             return nominator / denominator
 
         probabilities = np.array([calculate_prob(self.__distance_table,
