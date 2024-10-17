@@ -1,21 +1,33 @@
 import numpy as np
 from typing import List
-from selections.abstraction import Selector
+from selections.abstraction.selector import Selector
 from ea.individual import Individual
 
 class TournamentSelector(Selector):
-    def __init__(self, tournament_size: int = 5, n_population: int = 1, n_offsprings: int = 1) -> None:
+    """Implements a tournament selection strategy for selecting individuals from a population.
+
+    Attributes:
+        _tournament_size (int): The number of individuals participating in each tournament (default is 5).
+        _n_population (int): The number of individuals to retain in the new population (default is 1).
+        _n_offsprings (int): The number of offspring individuals to consider in the selection process (default is 1).
+    """
+    def __init__(self, tournament_size: int = 5, n_population: int = 1, n_offsprings: int = 1, selection_strategy: str = 'mu_plus_lambda') -> None:
         self._tournament_size = tournament_size
         self._n_population = n_population
-        self._n_oppsprings = n_offsprings
+        self._n_offsprings = n_offsprings
+        self.selection_strategy = selection_strategy
 
     def select(self, parents: List[Individual], offsprings: List[Individual]) -> List[Individual]:
-        population = parents[:self._n_population] + offsprings[:self._n_oppsprings] # mu + lambda
-        population = sorted(population, key=lambda x: x.fitness, reverse=True)
+        if self.selection_strategy == 'mu_plus_lambda':
+            population = parents[:self._n_population] + offsprings[:self._n_offsprings] # mu + lambda
+        elif self.selection_strategy == 'mu_comma_lambda':
+            population = offsprings[:self._n_offsprings] # mu , lambda
+        else:
+            raise ValueError("Choose 'mu_plus_lambda' or 'mu_comma_lambda' in the EvolutionaryFactory class.")
 
         new_population = []
         for _ in range(self._n_population):
-            tournament = np.random.choice(population, size=self._tournament_size, replace=False)
+            tournament = np.random.choice(population, size=self._tournament_size, replace=False) # type: ignore
             winner = max(tournament, key=lambda x: x.fitness)
             new_population.append(winner)
 

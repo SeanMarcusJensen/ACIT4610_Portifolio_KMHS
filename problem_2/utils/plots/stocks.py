@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 class StockPlotter:
-
+    """Class for plotting stock history data."""
     @staticmethod
     def stock_history(df: pd.DataFrame, title: str, ylabel:str, column: str) -> None:
         # Ensure 'Date' column is in datetime format

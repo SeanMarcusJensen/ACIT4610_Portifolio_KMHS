@@ -9,6 +9,14 @@ from selections.abstraction import Selector
 from utils.logger import Logger
 
 class Strategy:
+    """Represents a strategy for optimizing individuals in an EA.
+
+    Attributes:
+        mutator_factory (MutatorFactory): A factory for creating mutators used to apply mutations to individuals.
+        fitness_evaluator (FitnessEvaluator): An evaluator that assesses the fitness of individuals.
+        selector (Selector): A selection mechanism for choosing individuals from the population.
+        recombinator (Recombinator): A recombination mechanism for creating offspring from the population.
+    """
     def __init__(self,
                  mutator_factory: MutatorFactory,
                  fitness_evaluator: FitnessEvaluator,
@@ -39,8 +47,8 @@ class Strategy:
         return [self.__create_diverse_individual(n_genes) for _ in range(n_population)]
 
     def __create_diverse_individual(self, n_genes: int) -> Individual:
-        chromosone = np.random.dirichlet(np.ones(n_genes) * 0.1)
-        individual = Individual(chromosone, self.mutator_factory.create())
+        chromosome = np.random.dirichlet(np.ones(n_genes) * 0.1)
+        individual = Individual(chromosome, self.mutator_factory.create())
         individual.set_fitness(self.fitness_evaluator.evaluate(individual))
         return individual
     
