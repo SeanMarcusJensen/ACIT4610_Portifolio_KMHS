@@ -8,19 +8,22 @@ class TournamentSelector(Selector):
 
     Attributes:
         _tournament_size (int): The number of individuals participating in each tournament (default is 5).
-        _n_population (int): The number of individuals to retain in the new population (default is 1).
-        _n_offsprings (int): The number of offspring individuals to consider in the selection process (default is 1).
+        _n_population (int): The number of individuals to retain in the new population (default is 10).
+        _n_offsprings (int): The number of offspring individuals to consider in the selection process (default is 3).
     """
-    def __init__(self, tournament_size: int = 5, n_population: int = 1, n_offsprings: int = 1, selection_strategy: str = 'mu_plus_lambda') -> None:
+    def __init__(self, tournament_size: int = 5, n_population: int = 10, n_offsprings: int = 3, selection_strategy: str = 'mu_plus_lambda') -> None:
         self._tournament_size = tournament_size
         self._n_population = n_population
         self._n_offsprings = n_offsprings
-        self.selection_strategy = selection_strategy
+        self._selection_strategy = selection_strategy
+
+    def get_n_population(self) -> int:
+        return self._n_population
 
     def select(self, parents: List[Individual], offsprings: List[Individual]) -> List[Individual]:
-        if self.selection_strategy == 'mu_plus_lambda':
+        if self._selection_strategy == 'mu_plus_lambda':
             population = parents[:self._n_population] + offsprings[:self._n_offsprings] # mu + lambda
-        elif self.selection_strategy == 'mu_comma_lambda':
+        elif self._selection_strategy == 'mu_comma_lambda':
             population = offsprings[:self._n_offsprings] # mu , lambda
         else:
             raise ValueError("Choose 'mu_plus_lambda' or 'mu_comma_lambda' in the EvolutionaryFactory class.")
