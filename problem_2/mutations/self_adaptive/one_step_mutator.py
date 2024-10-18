@@ -18,7 +18,7 @@ class OneStepMutator(Mutator):
         self.learning_rate = learning_rate
         self.mutation_rate = mutation_rate
         self.sigma = np.random.rand()
-        self.threshold = 1e-6
+        self.threshold = 1e-8
 
         self.success_count = 0
         self.total_count = 0
@@ -26,8 +26,6 @@ class OneStepMutator(Mutator):
         self.adaptation_factor = 0.817  # (0.817)^4 ≈ 0.5
 
     def mutate(self, chromosone: np.ndarray) -> np.ndarray:
-        self.threshold = 1 / np.sqrt(len(chromosone))
-
         if np.random.rand() > self.mutation_rate:
             return chromosone
 

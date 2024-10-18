@@ -12,11 +12,10 @@ class BasicMutator(Mutator):
     """
     def __init__(self, learning_rate: float) -> None:
         self.learning_rate = learning_rate
-        self.threshold = 1e-6
+        self.threshold = 1e-8
 
     def mutate(self, chromosome: np.ndarray) -> np.ndarray:
-        self.threshold = 1 / np.sqrt(len(chromosome))
-        mutated_chromosome = self._mutate_objectives(chromosome)
+        mutated_chromosome = self._mutate_objectives(chromosome)    
         return np.maximum(mutated_chromosome, self.threshold)
             
     def copy(self) -> Mutator:

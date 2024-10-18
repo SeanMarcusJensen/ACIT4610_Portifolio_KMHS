@@ -3,7 +3,7 @@ import pandas as pd
 from mutations import SelfAdaptiveMutatorFactory, BasicMutatorFactory
 from recombinators import NoneCombinator, DiscreteRecombinator, UniformCrossover 
 from evaluators import BasicReturnsEvaluator, MaximumReturnsEvaluator, SharpeRatioEvaluator
-from selections import TournamentSelector
+from selections import TournamentSelector, ElitismSelector
 from ea.strategy import Strategy
 
 class EvolutionaryFactory:
@@ -47,8 +47,8 @@ class EvolutionaryFactory:
     def create_advanced_es_one_step(self, learning_rate: float, recombination_rate: float, mutation_rate: float, n_population: int, n_offsprings: int) -> Strategy:
         recombinator = DiscreteRecombinator(recombination_rate=recombination_rate)
         mutator = SelfAdaptiveMutatorFactory(learning_rate=learning_rate, steps=1, mutation_rate=mutation_rate)
-        evaluator = MaximumReturnsEvaluator(self.monthly_returns)
         selector = TournamentSelector(n_population=n_population, n_offsprings=n_offsprings)
+        evaluator = MaximumReturnsEvaluator(self.monthly_returns)
 
         strategy = Strategy(mutator, evaluator, selector, recombinator)
         return strategy
@@ -56,8 +56,8 @@ class EvolutionaryFactory:
     def create_advanced_es_n_step(self, learning_rate: float, recombination_rate: float, mutation_rate: float, n_population: int, n_offsprings: int) -> Strategy:
         recombinator = DiscreteRecombinator(recombination_rate=recombination_rate)
         mutator = SelfAdaptiveMutatorFactory(learning_rate=learning_rate, steps=self.__n_assets, mutation_rate=mutation_rate)
-        evaluator = MaximumReturnsEvaluator(self.monthly_returns)
         selector = TournamentSelector(n_population=n_population, n_offsprings=n_offsprings)
+        evaluator = MaximumReturnsEvaluator(self.monthly_returns)
 
         strategy = Strategy(mutator, evaluator, selector, recombinator)
         return strategy
@@ -65,8 +65,8 @@ class EvolutionaryFactory:
     def create_mu_plus_lambda(self, learning_rate: float, recombination_rate: float, mutation_rate: float, n_population: int, n_offsprings: int) -> Strategy:
         recombinator = DiscreteRecombinator(recombination_rate=recombination_rate)
         mutator = SelfAdaptiveMutatorFactory(learning_rate=learning_rate, steps=self.__n_assets, mutation_rate=mutation_rate)
-        evaluator = MaximumReturnsEvaluator(self.monthly_returns)
         selector = TournamentSelector(n_population=n_population, n_offsprings=n_offsprings, selection_strategy='mu_plus_lambda')
+        evaluator = MaximumReturnsEvaluator(self.monthly_returns)
 
         strategy = Strategy(mutator, evaluator, selector, recombinator)
         return strategy
@@ -74,8 +74,8 @@ class EvolutionaryFactory:
     def create_mu_comma_lambda(self, learning_rate: float, recombination_rate: float, mutation_rate: float, n_population: int, n_offsprings: int) -> Strategy:
         recombinator = DiscreteRecombinator(recombination_rate=recombination_rate)
         mutator = SelfAdaptiveMutatorFactory(learning_rate=learning_rate, steps=self.__n_assets, mutation_rate=mutation_rate)
-        evaluator = MaximumReturnsEvaluator(self.monthly_returns)
         selector = TournamentSelector(n_population=n_population, n_offsprings=n_offsprings, selection_strategy='mu_comma_lambda')
+        evaluator = MaximumReturnsEvaluator(self.monthly_returns)
 
         strategy = Strategy(mutator, evaluator, selector, recombinator)
         return strategy

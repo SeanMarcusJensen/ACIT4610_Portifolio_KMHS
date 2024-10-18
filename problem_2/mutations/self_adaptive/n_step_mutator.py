@@ -18,7 +18,7 @@ class NStepMutator(Mutator):
         adaptation_factor (float): The factor used to adjust sigma.
     """
     def __init__(self, learning_rate: float, objectives: int, mutation_rate: float) -> None:
-        self.threshold = 1e-6
+        self.threshold = 1e-8
         self.mutation_rate = mutation_rate
         self.learning_rate = learning_rate
         self.n = objectives
@@ -32,8 +32,6 @@ class NStepMutator(Mutator):
         self.adaptation_factor = 0.817  # (0.817)^4 ≈ 0.5
     
     def mutate(self, chromosone: np.ndarray) -> np.ndarray:
-        self.threshold = 1 / np.sqrt(len(chromosone))
-
         if np.random.rand() > self.mutation_rate:
             return chromosone
 
