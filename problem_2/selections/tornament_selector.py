@@ -10,6 +10,7 @@ class TournamentSelector(Selector):
         _tournament_size (int): The number of individuals participating in each tournament (default is 5).
         _n_population (int): The number of individuals to retain in the new population (default is 10).
         _n_offsprings (int): The number of offspring individuals to consider in the selection process (default is 3).
+        _selection_strategy (str): The name of the selection strategy used (default is 'mu_plus_lambda'. Alternatively there is 'mu_comma_lambda').
     """
     def __init__(self, tournament_size: int = 5, n_population: int = 10, n_offsprings: int = 3, selection_strategy: str = 'mu_plus_lambda') -> None:
         self._tournament_size = tournament_size
