@@ -97,7 +97,7 @@ class DeepQLearningAgent(Agent):
             action = action_space.sample()
         else:
             q_values = np.argmax(self.__policy(
-                self.__encoded_states[state])).item()
+                self.__encoded_states[state].reshape(1, -1))).item()
             action = q_values
 
         return action
@@ -125,6 +125,8 @@ class DeepQLearningAgent(Agent):
             if self.__current_steps >= self.__sync_after_steps:
                 self.__target.set_weights(self.__policy.get_weights())
                 self.__current_steps = 0
+
+        self.__current_reward = 0
 
     def __optimize_model(self, batch: np.ndarray) -> None:
         assert self.__policy is not None, "Policy model is not initialized."
@@ -176,7 +178,7 @@ class DeepQLearningAgent(Agent):
             ])
         else:
             self.__policy = keras.models.load_model(
-                'deep_q_learning.keras', compile=True)  # type: ignore
+                'deep_q_learning.keras')  # type: ignore
         assert self.__policy is not None, "Policy model is not initialized."
         self.__policy.compile(
             optimizer='adam', loss=self.__loss_fn, metrics=['accuracy'])
