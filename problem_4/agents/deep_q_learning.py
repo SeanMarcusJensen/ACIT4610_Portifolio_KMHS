@@ -70,7 +70,6 @@ class DeepQLearningAgent(Agent):
         self.__target: keras.Model | None = None
 
         self.__loss_fn = keras.losses.MeanSquaredError()
-        self.__optimizer = keras.optimizers.Adam(learning_rate=LEARNING_RATE)
 
         self.__encoded_states: NDArray[np.float64] | None = None
 
@@ -97,9 +96,8 @@ class DeepQLearningAgent(Agent):
         if self.__is_training and (np.random.uniform(0, 1) < self.EPSILON):
             action = action_space.sample()
         else:
-            print(self.__encoded_states[state])
-            q_values = np.max(self.__policy.predict(
-                self.__encoded_states[state]))
+            q_values = np.argmax(self.__policy(
+                self.__encoded_states[state])).item()
             action = q_values
 
         return action
@@ -179,9 +177,15 @@ class DeepQLearningAgent(Agent):
         else:
             self.__policy = keras.models.load_model(
                 'deep_q_learning.keras', compile=True)  # type: ignore
+        assert self.__policy is not None, "Policy model is not initialized."
+        self.__policy.compile(
+            optimizer='adam', loss=self.__loss_fn, metrics=['accuracy'])
+
         self.__sync_models()
 
     def __sync_models(self) -> None:
         """ Sync the policy and target neural network models. """
         assert self.__policy is not None, "Policy model is not initialized."
         self.__target = keras.models.clone_model(self.__policy)
+        self.__target.compile(
+            optimizer='adam', loss=self.__loss_fn, metrics=['accuracy'])
