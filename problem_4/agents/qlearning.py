@@ -57,7 +57,7 @@ class BasicQLearningAgent(Agent):
 
         return action
 
-    def update(self, state: int, action: int, reward: float, next_state: int) -> None:
+    def update(self, state: int, action: int, reward: float, next_state: int, terminal: bool) -> None:
         if not self.__is_training:
             return
 

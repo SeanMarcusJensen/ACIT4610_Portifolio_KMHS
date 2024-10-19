@@ -20,7 +20,7 @@ class Taxi:
             while (not terminated) and (not truncated):
                 action = agent.find_action(state, env.action_space)
                 next_state, reward, terminated, truncated, _ = env.step(action)
-                agent.update(state, action, reward, next_state)
+                agent.update(state, action, reward, next_state, terminated)
                 state = next_state
 
             agent.end_of_episode()

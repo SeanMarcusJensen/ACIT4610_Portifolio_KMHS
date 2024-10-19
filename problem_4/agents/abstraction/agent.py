@@ -14,7 +14,7 @@ class Agent(ABC):
         pass
 
     @abstractmethod
-    def update(self, state: int, action: int, reward: float, next_state: int) -> None:
+    def update(self, state: int, action: int, reward: float, next_state: int, terminal: bool) -> None:
         pass
 
     @abstractmethod
