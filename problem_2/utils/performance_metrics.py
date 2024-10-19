@@ -30,6 +30,17 @@ def analyze_returns(**kwargs):
     plt.legend(bbox_to_anchor=(1.25, 0.5))
     plt.show()
 
+    # Plot the standard deviation (stability) of returns
+    plt.figure(figsize=(12, 6))
+    algorithms = [name for name in kwargs]
+    std_returns = [data['returns'].std() for name, data in kwargs.items()]
+    
+    plt.bar(algorithms, std_returns, color='blue')
+    plt.title('Standard Deviation of Returns (Stability)')
+    plt.ylabel('Std of Returns')
+    plt.xticks(rotation=30)
+    plt.show()
+
 
 
 def analyze_convergence(**kwargs):

@@ -1,1 +1,2 @@
 from selections.tornament_selector import TournamentSelector
+from selections.elitism_selector import ElitismSelector
