@@ -77,6 +77,9 @@ class DeepQLearningAgent(Agent):
         self.__replay_buffer = ExperienceReplayBuffer(1000)
 
         self.__current_steps = 0
+        self.__current_episode = 0
+
+        self.__rewards: NDArray[np.float64] | None = None
 
     def save(self) -> None:
         assert self.__policy is not None, "Policy model is not initialized."
@@ -86,6 +89,7 @@ class DeepQLearningAgent(Agent):
         self.__is_training = is_training
         self.__create_model(observation_space.n, action_space.n)
         self.__encoded_states = np.eye(observation_space.n)
+        self.__rewards = np.zeros(n_episodes)
 
     def find_action(self, state: int, action_space: Space) -> int:
         assert self.__policy is not None, "Policy model is not initialized."
@@ -97,25 +101,31 @@ class DeepQLearningAgent(Agent):
             action = action_space.sample()
         else:
             q_values = np.argmax(self.__policy(
-                self.__encoded_states[state].reshape(1, -1))).item()
+                self.__encoded_states[state].reshape(1, -1))).item()  # Dont know if reshape is good here.
             action = q_values
 
+        assert action is not None, "Action is not initialized."
+        assert 0 <= action <= 5, "Action is less than 0."
         return action
 
     def update(self, state: int, action: int, reward: float, next_state: int, terminal: bool) -> None:
         self.__replay_buffer.add(state, action, reward, next_state, terminal)
         self.__current_reward += reward
         self.__current_steps += 1
+        self.__current_episode += 1
 
     def end_of_episode(self) -> None:
         assert self.__replay_buffer is not None, "Replay buffer is not initialized."
         assert self.__policy is not None, "Policy model is not initialized."
         assert self.__target is not None, "Target model is not initialized."
+        assert self.__rewards is not None, "Rewards array is not initialized."
 
         if self.__current_reward <= 0:
             return
 
-        if self.__is_training and len(self.__replay_buffer) > self.BATCH_SIZE:
+        self.__rewards[self.__current_episode] = self.__current_reward
+
+        if self.__is_training and len(self.__replay_buffer) > self.BATCH_SIZE and np.sum(self.__rewards) > 0:
             batch = self.__replay_buffer.sample(self.BATCH_SIZE)
             self.__optimize_model(batch)
 
@@ -183,11 +193,4 @@ class DeepQLearningAgent(Agent):
         self.__policy.compile(
             optimizer='adam', loss=self.__loss_fn, metrics=['accuracy'])
 
-        self.__sync_models()
-
-    def __sync_models(self) -> None:
-        """ Sync the policy and target neural network models. """
-        assert self.__policy is not None, "Policy model is not initialized."
         self.__target = keras.models.clone_model(self.__policy)
-        self.__target.compile(
-            optimizer='adam', loss=self.__loss_fn, metrics=['accuracy'])
