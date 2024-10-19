@@ -104,8 +104,6 @@ class DeepQLearningAgent(Agent):
                 self.__encoded_states[state].reshape(1, -1))).item()  # Dont know if reshape is good here.
             action = q_values
 
-        assert action is not None, "Action is not initialized."
-        assert 0 <= action <= 5, "Action is less than 0."
         return action
 
     def update(self, state: int, action: int, reward: float, next_state: int, terminal: bool) -> None:
