@@ -1,8 +1,6 @@
 
 from gym.spaces import Space
-import pickle
 import numpy as np
-from gym import Env
 import matplotlib.pyplot as plt
 from typing import Tuple, List
 from numpy.typing import NDArray
@@ -217,3 +215,8 @@ class DeepQLearningAgent(Agent):
             optimizer='adam', loss=self.__loss_fn, metrics=['accuracy'])
 
         self.__target = keras.models.clone_model(self.__policy)
+
+if __name__ == '__main__':
+    from .taxi import Taxi
+    agent = DeepQLearningAgent()
+    Taxi.run(agent, 1000, is_training=True)
