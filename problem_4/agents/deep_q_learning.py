@@ -44,9 +44,9 @@ class DeepQLearningAgent(Agent):
         n. One Hot encode the state to become input for the neural network.
     """
 
-    def __init__(self, EPSILON: float = 1.0, EPSILON_DECAY: float = 0.95, LEARNING_RATE: float = 0.01, DISCOUNT_FACTOR: float = 0.95, EPSILON_MIN: float = 0.01, BATCH_SIZE: int = 64, MEMORY_SIZE: int = 200000, SYNC_AFTER_STEPS: int = 100000):
+    def __init__(self, EPSILON: float = 1.0, EPSILON_DECAY: float = 0.99, LEARNING_RATE: float = 0.000095, DISCOUNT_FACTOR: float = 0.95, EPSILON_MIN: float = 0.01, BATCH_SIZE: int = 2000, MEMORY_SIZE: int = 200000, SYNC_AFTER_STEPS: int = 10):
         self.EPSILON = EPSILON
-        self.EPSILON_DECAY = EPSILON_DECAY
+        self.EPSILON_DECAY = 0.1 / 10000  # EPSILON_DECAY
         self.LEARNING_RATE = LEARNING_RATE
         self.DISCOUNT_FACTOR = DISCOUNT_FACTOR
         self.EPSILON_MIN = EPSILON_MIN
@@ -113,7 +113,6 @@ class DeepQLearningAgent(Agent):
     def update(self, state: int, action: int, reward: float, next_state: int, terminal: bool) -> None:
         self.__replay_buffer.add(state, action, reward, next_state, terminal)
         self.__current_reward += reward
-        self.__current_steps += 1
 
     def end_of_episode(self) -> None:
         assert self.__initialized, "Agent is not initialized."
@@ -123,18 +122,20 @@ class DeepQLearningAgent(Agent):
 
         has_enough_data = len(self.__replay_buffer) > self.BATCH_SIZE
 
-        if self.__is_training and has_enough_data and self.__current_episode > 45:
+        if self.__is_training and has_enough_data and self.__current_episode % 200 == 0:
+            self.__current_steps += 1
             print(f"Episode: {self.__current_episode}/{self.__n_episodes}")
+            self.plot_rewards()
             batch = self.__replay_buffer.sample(self.BATCH_SIZE)
             self.__optimize_model(batch)
 
             self.EPSILON = max(
-                self.EPSILON_MIN, self.EPSILON_DECAY * self.EPSILON)
+                self.EPSILON_MIN, self.EPSILON - (self.EPSILON_DECAY * self.__current_episode))
 
-            # if self.__current_steps >= self.__sync_after_steps:
-            #     # Update the target model.
-            #     self.__target.set_weights(self.__policy.get_weights())
-            #     self.__current_steps = 0
+            if self.__current_steps >= self.__sync_after_steps:
+                # Update the target model.
+                self.__target.set_weights(self.__policy.get_weights())
+                self.__current_steps = 0
 
         self.__current_episode += 1
 
@@ -151,7 +152,7 @@ class DeepQLearningAgent(Agent):
         # One hot encode the next states.
         next_states = self.__encoded_states[np.array(next_states)]
 
-        next_q_values = self.__policy.predict(next_states)
+        next_q_values = self.__target(next_states)
         max_next_q_values = np.max(next_q_values, axis=1)
 
         terminals = np.array(terminals, dtype=np.int8)
@@ -164,9 +165,11 @@ class DeepQLearningAgent(Agent):
 
         # Train the model.
         with tf.GradientTape() as tape:
-            q_values = self.__policy(states, training=True)
-            q_values = tf.reduce_sum(q_values * encoded_actions, axis=1)
+            q_values = self.__policy(states)
+            q_values = tf.reduce_sum(
+                q_values * encoded_actions, axis=1, keepdims=True)
             loss = tf.reduce_mean(self.__loss_fn(target_q_values, q_values))
+            print(f"Loss: {loss}")
 
         gradients = tape.gradient(loss, self.__policy.trainable_variables)
         self.__optimizer.apply_gradients(
@@ -190,7 +193,7 @@ class DeepQLearningAgent(Agent):
         if self.__is_training:
             self.__policy = keras.Sequential([
                 keras.layers.Input(shape=(observation_space,)),
-                keras.layers.Dense(action_space * 8, activation='relu'),
+                keras.layers.Dense(action_space * 16, activation='relu'),
                 # Use softmax to get the probabilities of each action.
                 keras.layers.Dense(action_space, activation='softmax')
             ])
@@ -200,10 +203,12 @@ class DeepQLearningAgent(Agent):
             self.__policy = model  # type: ignore
 
         self.__target = keras.models.clone_model(self.__policy)
+        self.__target.set_weights(self.__policy.get_weights())
 
 
 if __name__ == '__main__':
     from .taxi import Taxi
     agent = DeepQLearningAgent()
-    Taxi.run(agent, 10, is_training=False)
+    Taxi.run(agent, 2000, max_steps=2000, is_training=True)
+    # Taxi.run(agent, 10, max_steps=None, is_training=False)
     agent.plot_rewards()
