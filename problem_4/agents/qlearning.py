@@ -13,7 +13,7 @@ class BasicQLearningAgent(Agent):
     It chooses this action at random and aims to maximize the reward.
     """
 
-    def __init__(self, EPSILON: float = 1.0, EPSILON_DECAY: float = 0.001, LEARNING_RATE: float = 0.1, DISCOUNT_FACTOR: float = 0.9, EPSILON_MIN: float = 0.01):
+    def __init__(self, EPSILON: float = 1.0, EPSILON_DECAY: float = 0.996, LEARNING_RATE: float = 0.1, DISCOUNT_FACTOR: float = 0.95, EPSILON_MIN: float = 0.01):
         self.EPSILON = EPSILON
         self.EPSILON_DECAY = EPSILON_DECAY
         self.LEARNING_RATE = LEARNING_RATE
