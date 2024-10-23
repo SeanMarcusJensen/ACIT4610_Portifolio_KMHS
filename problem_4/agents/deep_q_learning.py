@@ -44,9 +44,15 @@ class DeepQLearningAgent(Agent):
         n. One Hot encode the state to become input for the neural network.
     """
 
-    def __init__(self, EPSILON: float = 1.0, EPSILON_DECAY: float = 0.99, LEARNING_RATE: float = 0.000095, DISCOUNT_FACTOR: float = 0.95, EPSILON_MIN: float = 0.01, BATCH_SIZE: int = 2000, MEMORY_SIZE: int = 200000, SYNC_AFTER_STEPS: int = 10):
+    def __init__(self, EPSILON: float = 1.0,
+                 EPSILON_DECAY: float = 0.995,
+                 LEARNING_RATE: float = 0.0095,
+                 DISCOUNT_FACTOR: float = 0.95,
+                 EPSILON_MIN: float = 0.1,  # Minimum 10% exploration.
+                 BATCH_SIZE: int = 2000,
+                 SYNC_AFTER_STEPS: int = 10):
         self.EPSILON = EPSILON
-        self.EPSILON_DECAY = 0.1 / 10000  # EPSILON_DECAY
+        self.EPSILON_DECAY = (1 - EPSILON_DECAY)  # Flip it to make it a decay.
         self.LEARNING_RATE = LEARNING_RATE
         self.DISCOUNT_FACTOR = DISCOUNT_FACTOR
         self.EPSILON_MIN = EPSILON_MIN
@@ -55,7 +61,6 @@ class DeepQLearningAgent(Agent):
         self.__sync_after_steps = SYNC_AFTER_STEPS
 
         self.__current_reward: float = 0.0
-        self.__current_steps = 0
         self.__current_episode = 0
 
         self.__random_actions = 0
@@ -65,14 +70,15 @@ class DeepQLearningAgent(Agent):
         self.__initialized = False
 
         self.__rewards: NDArray[np.float64] = np.ndarray(0)
+
         # One hot encoded states.
         self.__encoded_states: NDArray[np.int8] = np.ndarray(0)
 
         self.__policy: keras.Model
         self.__target: keras.Model
 
-        # Buffer size should be a parameter.
-        self.__replay_buffer = ExperienceReplayBuffer(MEMORY_SIZE)
+        # Keep n times the batch size for diversity.
+        self.__replay_buffer = ExperienceReplayBuffer(BATCH_SIZE*1000)
 
         self.__optimizer = keras.optimizers.Adam(
             learning_rate=self.LEARNING_RATE)
@@ -93,21 +99,18 @@ class DeepQLearningAgent(Agent):
     def find_action(self, state: int, action_space: Space) -> int:
         assert self.__initialized, "Agent is not initialized."
 
-        action: int = 0
-
         try:
             if self.__is_training and (np.random.uniform(0, 1) < self.EPSILON):
-                action = action_space.sample()
                 self.__random_actions += 1
-            else:
-                self.__policy_actions += 1
-                policy_input = self.__encoded_states[np.newaxis, state]
-                policy_output = self.__policy(policy_input)
-                q_values = np.argmax(policy_output[0]).item()
-                action = q_values
-            return action
+                return action_space.sample()
+
+            self.__policy_actions += 1
+            policy_input = self.__encoded_states[np.newaxis, state]
+            policy_output = self.__policy(policy_input)
+            return np.argmax(policy_output[0]).item()
         except Exception as e:
             print("Error in find_action, random action is taken.", e)
+            self.__random_actions += 1
             return action_space.sample()
 
     def update(self, state: int, action: int, reward: float, next_state: int, terminal: bool) -> None:
@@ -119,28 +122,23 @@ class DeepQLearningAgent(Agent):
 
         self.__rewards[self.__current_episode] = self.__current_reward
         self.__current_reward = 0.0
+        self.__current_episode += 1
 
         has_enough_data = len(self.__replay_buffer) > self.BATCH_SIZE
 
-        if self.__is_training and has_enough_data and self.__current_episode % 200 == 0:
-            self.__current_steps += 1
-            print(f"Episode: {self.__current_episode}/{self.__n_episodes}")
-            self.plot_rewards()
-            batch = self.__replay_buffer.sample(self.BATCH_SIZE)
-            self.__optimize_model(batch)
+        self.EPSILON = max(self.EPSILON_MIN, self.EPSILON_DECAY * self.EPSILON)
 
-            self.EPSILON = max(
-                self.EPSILON_MIN, self.EPSILON - (self.EPSILON_DECAY * self.__current_episode))
-
-            if self.__current_steps >= self.__sync_after_steps:
+        if self.__is_training and has_enough_data:
+            self.__optimize_model()
+            if self.__current_episode % self.__sync_after_steps == 0:
                 # Update the target model.
+                print(f"Sync [E:{self.__current_episode}/{self.__n_episodes}]")
                 self.__target.set_weights(self.__policy.get_weights())
-                self.__current_steps = 0
 
-        self.__current_episode += 1
-
-    def __optimize_model(self, batch: List[Tuple[int, int, float, int, bool]]) -> None:
+    def __optimize_model(self) -> None:
         assert self.__initialized, "Agent is not initialized."
+
+        batch = self.__replay_buffer.sample(self.BATCH_SIZE)
 
         # Get the states, actions, rewards, next_states, and terminals from the batch.
         states, actions, rewards, next_states, terminals = zip(
@@ -156,6 +154,12 @@ class DeepQLearningAgent(Agent):
         max_next_q_values = np.max(next_q_values, axis=1)
 
         terminals = np.array(terminals, dtype=np.int8)
+
+        """ If the episode is terminal, the target Q-Value is the reward.
+        else the target Q-Value is the
+        reward + the discounted maximum Q-Value of the next state.
+        That is why we have the rewards + (1 - terminals) part.
+        """
         target_q_values = (rewards + (1 - terminals) *
                            self.DISCOUNT_FACTOR * max_next_q_values).reshape(-1, 1)
 
@@ -169,7 +173,6 @@ class DeepQLearningAgent(Agent):
             q_values = tf.reduce_sum(
                 q_values * encoded_actions, axis=1, keepdims=True)
             loss = tf.reduce_mean(self.__loss_fn(target_q_values, q_values))
-            print(f"Loss: {loss}")
 
         gradients = tape.gradient(loss, self.__policy.trainable_variables)
         self.__optimizer.apply_gradients(
@@ -208,7 +211,16 @@ class DeepQLearningAgent(Agent):
 
 if __name__ == '__main__':
     from .taxi import Taxi
-    agent = DeepQLearningAgent()
-    Taxi.run(agent, 2000, max_steps=2000, is_training=True)
-    # Taxi.run(agent, 10, max_steps=None, is_training=False)
-    agent.plot_rewards()
+    agent = DeepQLearningAgent(
+        EPSILON=1.0,
+        EPSILON_DECAY=0.001,
+        EPSILON_MIN=0.1,
+        LEARNING_RATE=0.000095,
+        DISCOUNT_FACTOR=0.95,
+        BATCH_SIZE=2000,
+        SYNC_AFTER_STEPS=10
+    )
+
+    # Taxi.run(agent, n_episodes=2000, steps_per_episode=1000, is_training=True)
+    # agent.plot_rewards()
+    Taxi.run(agent, 10, steps_per_episode=1000, is_training=False)

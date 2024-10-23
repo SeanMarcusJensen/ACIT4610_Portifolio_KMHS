@@ -5,7 +5,7 @@ import gym
 
 class Taxi:
     @staticmethod
-    def run(agent: Agent, n_episodes: int, max_steps: int | None, is_training: bool = True) -> None:
+    def run(agent: Agent, n_episodes: int, steps_per_episode: int = 1000, is_training: bool = True) -> None:
         env = gym.make(
             'Taxi-v3', render_mode='human' if not is_training else None)
 
@@ -15,24 +15,14 @@ class Taxi:
 
             for _ in range(n_episodes):
                 state = env.reset()[0]
-                truncated = False
-                terminated = False
-
-                current_step = 0
-                while not truncated and not terminated:
-                    current_step += 1
+                for _ in range(steps_per_episode):
                     action = agent.find_action(state, env.action_space)
                     next_state, reward, terminated, truncated, _ = env.step(
                         action)
                     agent.update(state, action, reward, next_state, terminated)
                     state = next_state
-
                     if truncated or terminated:
                         break
-
-                    if max_steps is not None:
-                        if current_step > max_steps:
-                            break
 
                 agent.end_of_episode()
 
