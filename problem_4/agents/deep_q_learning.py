@@ -1,12 +1,12 @@
 
-from gym.spaces import Space
-import numpy as np
-import matplotlib.pyplot as plt
-from typing import Tuple, List
-from numpy.typing import NDArray
-import tensorflow as tf
 import keras
+import numpy as np
+import tensorflow as tf
+from gym.spaces import Space
 from .abstraction import Agent
+from typing import Tuple, List
+import matplotlib.pyplot as plt
+from numpy.typing import NDArray
 
 keras.config.disable_interactive_logging()
 
@@ -45,7 +45,7 @@ class DeepQLearningAgent(Agent):
     """
 
     def __init__(self, EPSILON: float = 1.0,
-                 EPSILON_DECAY: float = 0.995,
+                 EPSILON_DECAY: float = 0.95,
                  LEARNING_RATE: float = 0.0095,
                  DISCOUNT_FACTOR: float = 0.95,
                  EPSILON_MIN: float = 0.1,  # Minimum 10% exploration.
@@ -179,9 +179,32 @@ class DeepQLearningAgent(Agent):
             zip(gradients, self.__policy.trainable_variables))  # type: ignore
 
     def plot_rewards(self) -> None:
-        # TODO:
+        """ Plot the rewards accumulated over episodes.
+        Also, plot the moving average of rewards for smoothing.
+        """
         print(f"Random Actions: {self.__random_actions}")
         print(f"Policy Actions: {self.__policy_actions}")
+        assert len(self.__rewards) > 0, "No rewards to plot."
+
+        # Plot raw rewards.
+        episodes = np.arange(1, len(self.__rewards) + 1)
+        plt.plot(episodes, self.__rewards, label='Rewards per Episode')
+
+        # Compute a moving average for smoother trends (window size of 50).
+        window_size = 50
+        moving_avg = np.convolve(self.__rewards, np.ones(
+            window_size)/window_size, mode='valid')
+        plt.plot(episodes[:len(moving_avg)], moving_avg,
+                 label=f'Moving Avg (Window: {window_size})', color='orange')
+
+        # Add labels and title.
+        plt.xlabel('Episodes')
+        plt.ylabel('Total Reward')
+        plt.title('Agent Performance Over Time')
+        plt.legend()
+
+        # Show the plot.
+        plt.show()
 
     def __create_model(self, observation_space: int, action_space: int) -> None:
         """ Create a neural network model for the Deep Q-Learning Agent.
@@ -198,7 +221,9 @@ class DeepQLearningAgent(Agent):
                 keras.layers.Input(shape=(observation_space,)),
                 keras.layers.Dense(action_space * 16, activation='relu'),
                 # Use softmax to get the probabilities of each action.
-                keras.layers.Dense(action_space, activation='softmax')
+                # Linear activation for Q-Values.
+                # Linear activation for Q-Values.
+                keras.layers.Dense(action_space, activation='linear')
             ])
         else:
             model = keras.models.load_model(
@@ -213,14 +238,14 @@ if __name__ == '__main__':
     from .taxi import Taxi
     agent = DeepQLearningAgent(
         EPSILON=1.0,
-        EPSILON_DECAY=0.001,
-        EPSILON_MIN=0.1,
-        LEARNING_RATE=0.000095,
-        DISCOUNT_FACTOR=0.95,
-        BATCH_SIZE=2000,
-        SYNC_AFTER_STEPS=10
+        EPSILON_DECAY=0.95,
+        EPSILON_MIN=0.1,  # Minimum 10% exploration.
+        LEARNING_RATE=0.001,
+        DISCOUNT_FACTOR=0.99,  # Long term planning
+        BATCH_SIZE=128,
+        SYNC_AFTER_STEPS=100
     )
 
-    # Taxi.run(agent, n_episodes=2000, steps_per_episode=1000, is_training=True)
-    # agent.plot_rewards()
+    Taxi.run(agent, n_episodes=2000, steps_per_episode=1000, is_training=True)
+    agent.plot_rewards()
     Taxi.run(agent, 10, steps_per_episode=1000, is_training=False)
