@@ -113,7 +113,6 @@ class DeepQAgent(Agent):
         return keras.models.load_model('policy.keras')  # type: ignore
 
     def find_action(self, state: int, action_space: Space) -> int:
-        action: int = 0
         if self.training and self.__epsilon.should_be_random:
             return action_space.sample()
         q_values = self.__policy(np.array([state], dtype=np.float32))
@@ -134,7 +133,7 @@ class DeepQAgent(Agent):
         self.__policy.save('policy.keras')
 
     def train(self) -> float:
-        if len(self.__buffer) < self.__batch_size:
+        if len(self.__buffer) < self.__batch_size or not self.training:
             return -np.inf
 
         minibatch = random.sample(self.__buffer, self.__batch_size)
