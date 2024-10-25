@@ -2,12 +2,11 @@
 import keras
 import random
 import numpy as np
-from numpy.typing import NDArray
 import tensorflow as tf
 from gym.spaces import Space
 from collections import deque
 from .abstraction import Agent
-from typing import Tuple, List
+from typing import List
 import matplotlib.pyplot as plt
 from dataclasses import dataclass, field
 from keras.api.layers import Dense, Embedding, Flatten
@@ -59,26 +58,6 @@ class Metrics:
             f"Episode: {self.current_episode} Loss: {self.loss[-1]}, Reward: {self.rewards[-1]}")
 
 
-@ dataclass
-class ActionCache:
-    max_repeated = 7
-    __cache = deque(maxlen=max_repeated)
-
-    def append(self, action: int):
-        self.__cache.append(action)
-
-    def is_repeated(self) -> bool:
-        return len(np.unique(self.__cache)) <= 1
-
-
-"""
-Issues Met:
-- The DQL model found out that standing in the wall
-    and not moving is the best strategy to get the highest reward...
-
-"""
-
-
 class DeepQAgent(Agent):
     def __init__(self,
                  batch_size: int = 64,
@@ -87,7 +66,6 @@ class DeepQAgent(Agent):
                  epsilon: EpsilonGreedy = EpsilonGreedy(1.0, 0.95, 0.05),
                  ):
         self.__metrics = Metrics()
-        self.__action_cache = ActionCache()
 
         self.__batch_size = batch_size
         self.__buffer = deque([], maxlen=25000)
@@ -137,17 +115,9 @@ class DeepQAgent(Agent):
     def find_action(self, state: int, action_space: Space) -> int:
         action: int = 0
         if self.training and self.__epsilon.should_be_random:
-            action = action_space.sample()
-        else:
-            q_values = self.__policy(np.array([state], dtype=np.float32))
-            action = np.argmax(q_values[0]).item()
-
-        # Tool to prevent the agent from getting stuck in a loop
-        # self.__action_cache.append(action)
-        # if self.__action_cache.is_repeated():
-        #     action = action_space.sample()
-
-        return action
+            return action_space.sample()
+        q_values = self.__policy(np.array([state], dtype=np.float32))
+        return np.argmax(q_values[0]).item()
 
     def update(self, state: int, action: int, reward: float, next_state: int, terminated: bool):
         self.__buffer.append((state, action, reward, next_state, terminated))
@@ -263,6 +233,6 @@ if __name__ == "__main__":
         epsilon=EpsilonGreedy(1.0, 0.996, 0.05)
     )
 
-    Taxi.run(agent, n_episodes=2500, steps_per_episode=1000, is_training=True)
-    agent.plot()
+    # Taxi.run(agent, n_episodes=2500, steps_per_episode=1000, is_training=True)
+    # agent.plot()
     Taxi.run(agent, n_episodes=10, steps_per_episode=100, is_training=False)
