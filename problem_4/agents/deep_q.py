@@ -90,7 +90,7 @@ class DeepQAgent(Agent):
         self.__action_cache = ActionCache()
 
         self.__batch_size = batch_size
-        self.__buffer = deque([], maxlen=50000)
+        self.__buffer = deque([], maxlen=25000)
 
         self.__discount = discount
         self.__epsilon = epsilon
@@ -257,12 +257,12 @@ class DeepQAgent(Agent):
 if __name__ == "__main__":
     from .taxi import Taxi
     agent = DeepQAgent(
-        batch_size=128,
-        lr=0.001,
+        batch_size=258,
+        lr=0.0001,
         discount=0.95,
-        epsilon=EpsilonGreedy(1.0, 0.997, 0.05)
+        epsilon=EpsilonGreedy(1.0, 0.996, 0.05)
     )
 
-    Taxi.run(agent, n_episodes=1000, steps_per_episode=1000, is_training=True)
+    Taxi.run(agent, n_episodes=2500, steps_per_episode=1000, is_training=True)
     agent.plot()
     Taxi.run(agent, n_episodes=10, steps_per_episode=100, is_training=False)
