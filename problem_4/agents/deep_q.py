@@ -143,9 +143,9 @@ class DeepQAgent(Agent):
             action = np.argmax(q_values[0]).item()
 
         # Tool to prevent the agent from getting stuck in a loop
-        self.__action_cache.append(action)
-        if self.__action_cache.is_repeated():
-            action = action_space.sample()
+        # self.__action_cache.append(action)
+        # if self.__action_cache.is_repeated():
+        #     action = action_space.sample()
 
         return action
 
@@ -158,7 +158,7 @@ class DeepQAgent(Agent):
     def end_of_episode(self) -> None:
         self.__metrics.episode()
         self.__metrics.log()
-        return super().end_of_episode()
+        self.__current_reward = 0.0
 
     def save(self) -> None:
         self.__policy.save('policy.keras')
@@ -180,7 +180,6 @@ class DeepQAgent(Agent):
 
         self.__step_counter += 1
         if self.__step_counter % 1000 == 0:
-            print(f"Step: {self.__step_counter}, Loss: {loss}")
             self.sync_target()
         return loss  # type: ignore
 
@@ -232,8 +231,7 @@ class DeepQAgent(Agent):
                      label=f'Moving Avg (Window: {window_size})', color='orange', linewidth=2)
 
         # Scale steps to match the range of rewards
-        scaled_steps = steps / np.max(steps) * np.max(rewards)
-        ax1.plot(episodes, scaled_steps, label='Scaled Steps',
+        ax1.plot(episodes, steps, label='Scaled Steps',
                  color='green', linewidth=2)
 
         ax1.tick_params(axis='y', labelcolor=color)
@@ -242,7 +240,7 @@ class DeepQAgent(Agent):
         ax2 = ax1.twinx()
         color = 'tab:red'
         ax2.set_ylabel('Epsilon (log scale)', color=color)
-        epsilon_log = np.log10(epsilon_history)
+        epsilon_log = np.array(epsilon_history)
         ax2.plot(episodes, epsilon_log, label='Epsilon (log)',
                  color=color, linestyle='--', linewidth=2)
         ax2.tick_params(axis='y', labelcolor=color)
@@ -259,12 +257,12 @@ class DeepQAgent(Agent):
 if __name__ == "__main__":
     from .taxi import Taxi
     agent = DeepQAgent(
-        batch_size=64,
-        lr=0.01,
-        discount=0.90,
-        epsilon=EpsilonGreedy(1.0, 0.95, 0.05)
+        batch_size=128,
+        lr=0.001,
+        discount=0.95,
+        epsilon=EpsilonGreedy(1.0, 0.997, 0.05)
     )
 
-    Taxi.run(agent, n_episodes=10, steps_per_episode=1000, is_training=True)
+    Taxi.run(agent, n_episodes=1000, steps_per_episode=1000, is_training=True)
     agent.plot()
     Taxi.run(agent, n_episodes=10, steps_per_episode=100, is_training=False)
