@@ -69,19 +69,20 @@ class BasicQLearningAgent(Agent):
         self.__q_table[state, action] = reward + \
             np.max(self.__q_table[next_state])
         self.__current_reward += reward
+        self.__metrics.step(0, self.__current_reward)
 
     def end_of_episode(self) -> None:
         assert self.__rewards is not None, "Rewards array is not initialized."
 
-        self.__epsilon.update(0)
+        self.__epsilon.update(self.__current_episode)
 
         if not self.__is_training:
             return
 
         self.__rewards[self.__current_episode] = self.__current_reward
-        self.__metrics.step(0, self.__current_reward)
         self.__current_reward = 0
         self.__current_episode += 1
+        self.__metrics.episode()
 
     def plot(self, save_location: str | None = None) -> None:
         """ Plot the rewards, steps, and epsilon over episodes with improved aesthetics. """
