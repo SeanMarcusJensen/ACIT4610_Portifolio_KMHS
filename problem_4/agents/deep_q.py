@@ -1,61 +1,14 @@
-
 import keras
 import random
 import numpy as np
 import tensorflow as tf
+from utils import Metrics
 from gym.spaces import Space
 from collections import deque
 from .abstraction import Agent
-from typing import List
 import matplotlib.pyplot as plt
-from dataclasses import dataclass, field
+from utils.epsilon_greedy import EpsilonGreedy
 from keras.api.layers import Dense, Embedding, Flatten
-
-
-@dataclass
-class EpsilonGreedy:
-    """ Epsilon Greedy Algorithm """
-    value: float
-    decay: float
-    min: float
-    history: List[float] = field(default_factory=list)
-
-    @property
-    def should_be_random(self) -> bool:
-        return np.random.rand() < self.value
-
-    def update(self, episode: int):
-        self.value = max(self.min, self.value * self.decay)
-        self.history.append(self.value)
-
-
-@ dataclass
-class Metrics:
-    loss_: float = 0.0
-    rewards_: float = 0.0
-    current_episode: int = 0
-    current_steps: int = 0
-    loss: List[float] = field(default_factory=list)
-    rewards: List[float] = field(default_factory=list)
-    steps: List[int] = field(default_factory=list)
-
-    def step(self, loss: float, reward: float):
-        self.current_steps += 1
-        self.loss_ += loss
-        self.rewards_ += reward
-
-    def episode(self):
-        self.loss.append(self.loss_)
-        self.rewards.append(self.rewards_)
-        self.steps.append(self.current_steps)
-        self.current_steps = 0
-        self.current_episode += 1
-        self.rewards_ = 0.0
-        self.loss_ = 0.0
-
-    def log(self):
-        print(
-            f"Episode: {self.current_episode} Loss: {self.loss[-1]}, Reward: {self.rewards[-1]}")
 
 
 class DeepQAgent(Agent):
@@ -152,7 +105,7 @@ class DeepQAgent(Agent):
             self.sync_target()
         return loss  # type: ignore
 
-    @ tf.function
+    @tf.function
     def train_steps(self, states, actions, rewards, next_states, dones):
         rewards = tf.cast(rewards, tf.float32)
         dones = tf.cast(dones, tf.float32)
@@ -173,7 +126,7 @@ class DeepQAgent(Agent):
 
         return loss
 
-    def plot(self) -> None:
+    def plot(self, save_location: str | None = None) -> None:
         """ Plot the rewards, steps, and epsilon over episodes with improved aesthetics. """
         episodes = np.arange(1, self.__metrics.current_episode + 1)
 
@@ -219,6 +172,9 @@ class DeepQAgent(Agent):
         fig.tight_layout()  # Adjust layout to not overlap labels
         ax1.legend(loc='upper left')
         ax2.legend(loc='upper right')
+
+        if save_location:
+            plt.savefig(save_location + '/training_metrics/deep_q.png')
 
         plt.show()
 
