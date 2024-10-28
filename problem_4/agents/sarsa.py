@@ -39,7 +39,7 @@ class SARSAAgent(Agent):
 
     def find_action(self, state: int, action_space: Space) -> int:
         action: int = 0
-        if self.__epsilon.should_be_random:
+        if self.__is_training and self.__epsilon.should_be_random:
             action = action_space.sample()
         else:
             action = np.argmax(self.__q_table[state]).item()

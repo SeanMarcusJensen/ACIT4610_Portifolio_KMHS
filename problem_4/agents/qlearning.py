@@ -24,9 +24,9 @@ class BasicQLearningAgent(Agent):
 
         self.__metrics = Metrics()
 
-        self.__q_table: NDArray[np.float64] | None = None
-        self.__rewards: NDArray[np.float64] | None = None
-        self.__current_reward = 0
+        self.__q_table: NDArray[np.float64] = np.array(0)
+        self.__rewards: NDArray[np.float64] = np.array(0)
+        self.__current_reward: float = 0.0
         self.__current_episode = 0
         self.__is_training = True
 
@@ -57,7 +57,7 @@ class BasicQLearningAgent(Agent):
         if self.__is_training and self.__epsilon.should_be_random:
             action = action_space.sample()
         else:
-            action = np.argmax(self.__q_table[state, :]).item()
+            action = np.argmax(self.__q_table[state]).item()
 
         return action
 
@@ -68,21 +68,22 @@ class BasicQLearningAgent(Agent):
         assert self.__q_table is not None, "Q-Table is not initialized."
         self.__q_table[state, action] = reward + \
             np.max(self.__q_table[next_state])
+
         self.__current_reward += reward
         self.__metrics.step(0, self.__current_reward)
 
     def end_of_episode(self) -> None:
         assert self.__rewards is not None, "Rewards array is not initialized."
 
-        self.__epsilon.update(self.__current_episode)
-
         if not self.__is_training:
             return
 
+        self.__epsilon.update(self.__current_episode)
         self.__rewards[self.__current_episode] = self.__current_reward
-        self.__current_reward = 0
-        self.__current_episode += 1
         self.__metrics.episode()
+
+        self.__current_reward = 0.0
+        self.__current_episode += 1
 
     def plot(self, save_location: str | None = None) -> None:
         """ Plot the rewards, steps, and epsilon over episodes with improved aesthetics. """
