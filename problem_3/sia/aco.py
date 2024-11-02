@@ -117,13 +117,12 @@ class ACO:
         service_times (List[int]): List of time it takes to serve each customer.
     """
     def __init__(self, locations_df: pd.DataFrame, n_vehicles: int, n_iterations: int, aco_params: ACOParameters, max_capacity: int) -> None:
-        self.df = locations_df
         self.n_vehicles = n_vehicles
         self.n_iterations = n_iterations
         self.aco_params = aco_params
         self.max_capacity = max_capacity
         
-        self.n_locations = len(self.df)
+        self.n_locations = len(locations_df)
         self.distances = DistanceMatrix(locations_df).matrix
         self.demands = locations_df['Demand'].tolist()
         self.time_windows = list(zip(locations_df['ReadyTime'], locations_df['Due']))
