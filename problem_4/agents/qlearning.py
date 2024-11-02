@@ -14,8 +14,15 @@ class BasicQLearningAgent(Agent):
     which will find the next best action to take in a given a state.
     It chooses this action at random and aims to maximize the reward.
     """
+    model_name = 'basic-q-learning-agent'
 
-    def __init__(self, EPSILON: float = 1.0, EPSILON_DECAY: float = 0.996, LEARNING_RATE: float = 0.1, DISCOUNT_FACTOR: float = 0.95, EPSILON_MIN: float = 0.01):
+    def __init__(self,
+                 EPSILON: float = 1.0,
+                 EPSILON_DECAY: float = 0.996,
+                 LEARNING_RATE: float = 0.1,
+                 DISCOUNT_FACTOR: float = 0.95,
+                 EPSILON_MIN: float = 0.1):
+
         self.LEARNING_RATE = LEARNING_RATE
         self.DISCOUNT_FACTOR = DISCOUNT_FACTOR
 
@@ -31,13 +38,12 @@ class BasicQLearningAgent(Agent):
         self.__is_training = True
 
     def load(self) -> None:
-        with open('q_table.pkl', 'rb') as f:
+        with open(self.model_name + '.pkl', 'rb') as f:
             self.__q_table = pickle.load(f)
             f.close()
 
     def save(self) -> None:
-        assert self.__q_table is not None, "Q-Table is not initialized."
-        with open('q_table.pkl', 'wb') as f:
+        with open(self.model_name + '.pkl', 'wb') as f:
             pickle.dump(self.__q_table, f)
             f.close()
 
@@ -45,36 +51,34 @@ class BasicQLearningAgent(Agent):
         if not is_training:
             self.load()
         else:
-            self.__q_table = np.zeros((observation_space.n, action_space.n))
+            self.__q_table = np.zeros((observation_space.n, action_space.n)) # type: ignore
 
         self.__rewards = np.zeros(n_episodes)
         self.__is_training = is_training
 
     def find_action(self, state: int, action_space: Space) -> int:
-        assert self.__q_table is not None, "Q-Table is not initialized."
-        action: int = 0
-
         if self.__is_training and self.__epsilon.should_be_random:
-            action = action_space.sample()
-        else:
-            action = np.argmax(self.__q_table[state]).item()
+            return action_space.sample()
 
-        return action
+        return np.argmax(self.__q_table[state]).item()
 
     def update(self, state: int, action: int, reward: float, next_state: int, terminal: bool) -> None:
         if not self.__is_training:
             return
+        
+        reward = reward if not terminal else 0
 
-        assert self.__q_table is not None, "Q-Table is not initialized."
-        self.__q_table[state, action] = reward + \
-            np.max(self.__q_table[next_state])
+        """
+        Q(a, s) <- Q(a, s) + α[R(s) + γ max_a' Q(a', s') - Q(a, s)]
+        """
+        current_q_value = self.__q_table[state, action]
+        self.__q_table[state, action] += self.LEARNING_RATE * \
+                (reward + self.DISCOUNT_FACTOR * np.max(self.__q_table[next_state]) - current_q_value)
 
         self.__current_reward += reward
         self.__metrics.step(0, self.__current_reward)
 
     def end_of_episode(self) -> None:
-        assert self.__rewards is not None, "Rewards array is not initialized."
-
         if not self.__is_training:
             return
 
@@ -136,3 +140,18 @@ class BasicQLearningAgent(Agent):
             plt.savefig(save_location + '/training_metrics/q-learning.png')
 
         plt.show()
+
+if __name__ == "__main__":
+    from agents import Taxi
+
+    agent = BasicQLearningAgent(
+            DISCOUNT_FACTOR=0.95,
+            EPSILON=1.0,
+            EPSILON_MIN=0.05,
+            EPSILON_DECAY=0.995,
+            LEARNING_RATE=0.6)
+
+    Taxi.run(agent, n_episodes=1000, steps_per_episode=1000, is_training=True)
+    agent.plot()
+
+

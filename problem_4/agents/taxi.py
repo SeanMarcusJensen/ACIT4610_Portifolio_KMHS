@@ -8,7 +8,8 @@ class Taxi:
     def run(agent: Agent, n_episodes: int, steps_per_episode: int = 1000, is_training: bool = True) -> None:
         env = gym.make(
             'Taxi-v3', render_mode='human' if not is_training else None)
-
+        
+        dropoff_failuers = 0
         try:
             agent.initialize(
                 env.action_space, env.observation_space, n_episodes, is_training=is_training)
@@ -24,10 +25,15 @@ class Taxi:
                     if truncated or terminated:
                         break
 
+                    if reward <= -10:
+                        dropoff_failuers += 1
+
                 agent.end_of_episode()
 
             if is_training:
                 agent.save()
+
+            print(f"Failed Dropoffs: {dropoff_failuers}")
         except Exception as e:
             print(f"Error in running the agent: {e}")
 
