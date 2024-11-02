@@ -61,7 +61,7 @@ class SARSAAgent(Agent):
         if not self.__is_training:
             return
 
-        self.__epsilon.update(self.__current_episode)
+        self.__epsilon.update()
         self.__rewards[self.__current_episode] = self.__current_reward
         self.__metrics.episode()
 

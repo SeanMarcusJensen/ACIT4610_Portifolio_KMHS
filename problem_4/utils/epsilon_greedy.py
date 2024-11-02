@@ -15,6 +15,6 @@ class EpsilonGreedy:
     def should_be_random(self) -> bool:
         return np.random.rand() < self.value
 
-    def update(self, episode: int):
+    def update(self):
         self.value = max(self.min, self.value * self.decay)
         self.history.append(self.value)
