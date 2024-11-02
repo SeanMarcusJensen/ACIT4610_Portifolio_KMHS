@@ -1,28 +1,10 @@
 import random
-from typing import List, Optional, Set, Tuple, Union
+from typing import List, Optional, Tuple
 
-from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 
 from utils.matrix.distance_matrix import DistanceMatrix
-
-class Location:
-    """Represents a customer (or depot) in VRPTW.
-
-    Attributes:
-        idx (int): The unique identifier for the locations.
-        demand (int): The demand for goods at the location.
-        ready_time (int): The earliest time at which service can begin at the location.
-        due_time (int): The latest time by which service must be completed at the location.
-        service_time (int): The time required to service the location.
-    """
-    def __init__(self, idx: int, demand: int, ready_time: int, due_time: int, service_time: int) -> None:
-        self.idx = idx
-        self.demand = demand
-        self.ready_time = ready_time
-        self.due_time = due_time
-        self.service_time = service_time
 
 class ACOParameters:
     """Manages the parameters and pheromone levels for the ACO algorithm.
@@ -66,11 +48,10 @@ class Vehicle:
     Attributes:
         max_capacity (int): The maximum capacity of the vehicle.
     """
-    PENALTY_EARLY = 50
-    PENALTY_LATE = 100
-    
     def __init__(self, max_capacity: int) -> None:
         self.max_capacity = max_capacity
+        self.penalty_early = 50
+        self.penalty_late = 100
 
     def select_next_customer(self, 
                              pheromones: np.ndarray, 
@@ -93,9 +74,9 @@ class Vehicle:
 
             penalty = 0
             if arrival_time < ready_time:
-                penalty = self.PENALTY_EARLY
+                penalty = self.penalty_early
             elif arrival_time > due_time:
-                penalty = self.PENALTY_LATE
+                penalty = self.penalty_late
 
             if demand <= self.max_capacity:
                 pheromone = pheromones[current_customer][next_customer] ** alpha
@@ -184,7 +165,7 @@ class ACO:
 
             if arrival_time < ready_time:
                 current_time = ready_time + self.service_times[next_customer]
-                total_penalty += Vehicle.PENALTY_EARLY
+                total_penalty += vehicle.penalty_early
                 time_window_violations += 1
                 current_capacity -= self.demands[next_customer]  # Update capacity after service
                 solution.append(next_customer)
@@ -194,7 +175,7 @@ class ACO:
                 print(f"Remaining capacity {current_capacity}, unvisited customers: {unvisited_customers}")
 
             elif arrival_time > due_time:
-                total_penalty += Vehicle.PENALTY_LATE
+                total_penalty += vehicle.penalty_late
                 time_window_violations += 1
                 unvisited_customers.remove(next_customer)
                 print(f"Late violation at {next_customer}, current penalty {total_penalty}")
