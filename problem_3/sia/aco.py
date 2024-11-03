@@ -16,13 +16,7 @@ class ACOParameters:
         Q (float): Constant influencing the amount of pheromone added per solution.
         pheromones (np.ndarray): A matrix storing the pheromone levels between locations.
     """
-    def __init__(self, 
-                 n_locations: int, 
-                 alpha: float = 1.0, 
-                 beta: float = 2.0, 
-                 evaporation_rate: float = 0.5, 
-                 initial_pheromone: float = 0.2, 
-                 Q: float = 100.0) -> None:
+    def __init__(self, n_locations: int, alpha: float = 1.0, beta: float = 2.0, evaporation_rate: float = 0.5, initial_pheromone: float = 0.2, Q: float = 100.0) -> None:
         self.alpha = alpha
         self.beta = beta
         self.evaporation_rate = evaporation_rate
