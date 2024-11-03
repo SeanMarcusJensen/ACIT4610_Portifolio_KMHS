@@ -72,7 +72,7 @@ class TaxiAgent(ABC):
         self._save()
         return metrics
 
-    def test(self, n_episodes: int, step_limit_per_episode: int) -> AgentMetrics:
+    def watch(self, n_episodes: int, step_limit_per_episode: int) -> AgentMetrics:
         self._load()
         self._env = gym.make("Taxi-v3", render_mode="human")
         return self.__run(n_episodes, step_limit_per_episode, is_training=False)
