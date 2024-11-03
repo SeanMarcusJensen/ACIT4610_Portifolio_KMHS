@@ -10,7 +10,7 @@ def print_solutions(vehicle_solutions: List[List[int]], best_distances: List[flo
     print(f"Best solution (Index: {best_solution_index + 1})")
 
     for i, solution in enumerate(vehicle_solutions):
-        route_str = ' -> '.join(map(str, solution[1:-1]))  # Exclude the depot
+        route_str = ' -> '.join(map(str, solution[1:-1])) # Exclude the depot
         print(f"Route {i + 1}: {route_str} | Distance travelled: {best_distances[i]:.2f} | Time window violations: {time_window_violations[i]}")
 
     print(f"\nTotal number of customers visited: {max_customers_visited}/100")
@@ -18,7 +18,7 @@ def print_solutions(vehicle_solutions: List[List[int]], best_distances: List[flo
     print(f"Total time window violations: {total_violations}")
 
 def plot_vehicle_routes(df: pd.DataFrame, vehicle_solutions: List[List[int]]):
-    depot = df.iloc[0]  # Assuming the depot is the first row (index 0)
+    depot = df.iloc[0] # Assuming the depot is the first row (index 0)
     customer_positions = df[['Lng', 'Lat']].values
 
     plt.figure(figsize=(10, 8))
@@ -29,7 +29,7 @@ def plot_vehicle_routes(df: pd.DataFrame, vehicle_solutions: List[List[int]]):
     colors = plt.cm.get_cmap('tab20', len(vehicle_solutions))
 
     for i, solution in enumerate(vehicle_solutions):
-        route_positions = customer_positions[solution]  # Get positions of the customers in this route
+        route_positions = customer_positions[solution] # Get positions of the customers in this route
         plt.plot(route_positions[:, 0], route_positions[:, 1], color=colors(i), marker='o', label=f'Vehicle {i + 1}')
 
     plt.title("Vehicle Routes for VRPTW Solution")

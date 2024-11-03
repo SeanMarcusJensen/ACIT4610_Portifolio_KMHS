@@ -130,10 +130,10 @@ class ACO:
 
     def construct_solution(self, vehicle: Vehicle, unvisited_customers: set) -> Tuple[List[int], float, int, int]:
         """Construct a solution route for a single vehicle"""
-        current_customer = 0  # Start from the depot (Customer 0)
-        solution = [current_customer]  # Solution path
-        current_capacity = self.max_capacity  # Initialize vehicle with full capacity
-        current_time = self.time_windows[0][0]  # Initial time set to the ready time of depot
+        current_customer = 0 # Start from the depot (Customer 0)
+        solution = [current_customer] # Solution path
+        current_capacity = self.max_capacity # Initialize vehicle with full capacity
+        current_time = self.time_windows[0][0] # Initial time set to the ready time of depot
         total_penalty = 0
         time_window_violations = 0
 
@@ -154,7 +154,7 @@ class ACO:
             )
 
             if next_customer is None:
-                break  # Return to depot if no next_customer are left
+                break # Return to depot if no next_customer are left
 
             travel_time = self.distances[current_customer][next_customer]
             arrival_time = current_time + travel_time
@@ -166,7 +166,7 @@ class ACO:
                 current_time = ready_time + self.service_times[next_customer]
                 total_penalty += vehicle.penalty_early
                 time_window_violations += 1
-                current_capacity -= self.demands[next_customer]  # Update capacity after service
+                current_capacity -= self.demands[next_customer] # Update capacity after service
                 solution.append(next_customer)
                 current_customer = next_customer
                 unvisited_customers.remove(next_customer)
@@ -196,9 +196,9 @@ class ACO:
 
             # Check if the remaining capacity can serve any unvisited customer
             if current_capacity < min([self.demands[customer] for customer in unvisited_customers], default=0):
-                break  # Return to depot if vehicle can't serve any of the next customer
+                break # Return to depot if vehicle can't serve any of the next customer
 
-        solution.append(0)  # Return to the depot (Customer 0)
+        solution.append(0) # Return to the depot (Customer 0)
 
         # Calculate the total distance for the constructed route
         total_distance = sum(self.distances[solution[i]][solution[i + 1]] for i in range(len(solution) - 1))
@@ -214,7 +214,7 @@ class ACO:
         all_route_distances = []
         all_route_violations = []
         all_customers_visited = []
-        total_distances = []        # Total distances per iteration
+        total_distances = [] # Total distances per iteration
 
         best_iteration_index = None
         max_customers_visited = 0
@@ -228,7 +228,7 @@ class ACO:
             route_violations = []
             customers_visited_in_iteration = 0
 
-            unvisited_customers = set(range(1, self.n_locations))  # All customers (excluding the depot)
+            unvisited_customers = set(range(1, self.n_locations)) # All customers (excluding the depot)
             
             for j in range(self.n_vehicles):
                 print(f"VEHICLE {j + 1}")
@@ -243,7 +243,7 @@ class ACO:
                     vehicle_solutions.append(solution)
                     route_distances.append(total_cost)
                     route_violations.append(violation)
-                    customers_visited_in_iteration += len(solution) - 2  # Exclude depot from customer count
+                    customers_visited_in_iteration += len(solution) - 2 # Exclude depot from customer count
 
             # Update pheromones based on solutions
             self.aco_params.update_pheromones(solutions)
