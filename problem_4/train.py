@@ -4,12 +4,12 @@ if __name__ == '__main__':
 
     random_policy = agents.RandomPolicyAgent()
     metrics = random_policy.train(10000, 1000)
-    metrics.plot(None)
+    metrics.plot('static/metrics/random.png')
 
     heuristic_policy = agents.HeuristicPolicyAgent()
     metrics = heuristic_policy.train(10000, 1000)
-    metrics.plot(None)
-    heuristic_policy.watch(2, 30)
+    metrics.plot('static/metrics/heuristic.png')
+    heuristic_policy.record_video(3, 'static/movies/heuristic')
 
     basic = agents.BasicQAgent(
             EpsilonGreedy(1.0, 0.999, 0.00),
