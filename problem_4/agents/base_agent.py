@@ -2,7 +2,7 @@ import os
 import random
 import numpy as np
 import gymnasium as gym
-from gymnasium.wrappers import RecordEpisodeStatistics, RecordVideo 
+from gymnasium.wrappers import RecordVideo 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from utils import EpsilonGreedy
@@ -63,9 +63,14 @@ class AgentMetrics:
 
 
 class TaxiAgent(ABC):
-    def __init__(self) -> None:
+    def __init__(self, epsilon: EpsilonGreedy) -> None:
         self.metrics = AgentMetrics()
+        self._epsilon = epsilon
+
         self._env = gym.make("Taxi-v3") # Needed for subclasses to initialize.
+
+        self._actions = {"down": 0, "up": 1, "right": 2, "left": 3, "pickup": 4, "dropoff": 5}
+        self._locations = [(0, 0), (0, 4), (4, 0), (4, 3)] # R, G, Y, B
 
     def train(self, n_episodes: int, step_limit_per_episode: int) -> AgentMetrics:
         metrics = self.__run(n_episodes, step_limit_per_episode, is_training=True)
@@ -89,7 +94,11 @@ class TaxiAgent(ABC):
             episode_reward = 0.0
             episode_steps = 0
             for _ in range(step_limit_per_episode):
-                action = self._get_action(state, is_training)
+
+                if is_training and self._epsilon.should_be_random:
+                    action = self._get_action(state)
+                else:
+                    action = self._get_action(state)
 
                 next_state, reward, terminated, truncated, _ = self._env.step(action)
 
@@ -103,6 +112,7 @@ class TaxiAgent(ABC):
                 if terminated or truncated:
                     break
 
+            self._epsilon.update()
             self.metrics.episode_rewards.append(episode_reward)
             self.metrics.episode_steps.append(episode_steps)
 
@@ -117,7 +127,7 @@ class TaxiAgent(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def _get_action(self, state: int, is_training: bool) -> int:
+    def _get_action(self, state: int) -> int:
         raise NotImplementedError
 
     @abstractmethod
@@ -139,11 +149,92 @@ class TaxiAgent(ABC):
             print(f"Error closing environment: {e}")
 
 
+class RandomPolicyAgent(TaxiAgent):
+    def __init__(self) -> None:
+        super().__init__(EpsilonGreedy(1.0, 0.0, 1.0))
+
+    def _load(self) -> None:
+        return
+    
+    def _save(self) -> None:
+        return
+
+    def _get_action(self, state: int) -> int:
+        """ Returns a random action. """
+        return self._env.action_space.sample()
+    
+    def _update(self, state: int, action: int, reward: float, next_state: int, terminated: bool) -> None:
+        """ No training is needed, because the agent is deterministic. """
+        return
+
+
+class HeuristicPolicyAgent(TaxiAgent):
+    def __init__(self) -> None:
+        super().__init__(EpsilonGreedy(0.0, 0.0, 0.0))
+        self.__is_stuck = False
+
+    def _load(self) -> None:
+        return
+    
+    def _save(self) -> None:
+        return
+    
+    def _get_action(self, state: int) -> int:
+        taxi_row, taxi_col, passenger_loc, dest_loc = self.__decode_state(state)
+        """ passenger_loc & dest_loc is a number between 0-3; needs to be decoded to x,y coords """
+
+        if self.__is_stuck:
+            action = self._env.action_space.sample()
+            self.__is_stuck = False
+            return action
+
+        if passenger_loc < 4:
+            return self.__handle_pickup(taxi_row, taxi_col, self._locations[passenger_loc])
+
+        return self.__handle_dropoff(taxi_row, taxi_col, self._locations[dest_loc])
+    
+    def _update(self, state: int, action: int, reward: float, next_state: int, terminated: bool) -> None:
+        """ No training is needed, because the agent is deterministic.
+        Might need to use prev state to make sure the agent is not stuck.
+        """
+        if state == next_state:
+            self.__is_stuck = True
+
+    def __decode_state(self, state: int) -> tuple:
+        taxi_row, taxi_col, passenger_loc, dest_loc = self._env.unwrapped.decode(state) # type: ignore
+        return taxi_row, taxi_col, passenger_loc, dest_loc
+
+    def __handle_pickup(self, taxi_row: int, taxi_col: int, passenger_loc: tuple) -> int:
+        """
+        Handles moving to the passenger location.
+        """
+        if (taxi_row, taxi_col) == passenger_loc:
+            return self._actions["pickup"]
+        return self.__move_towards(taxi_row, taxi_col, *passenger_loc)
+
+    def __handle_dropoff(self, taxi_row: int, taxi_col: int, dest_loc: tuple) -> int:
+        if (taxi_row, taxi_col) == dest_loc:
+            return self._actions["dropoff"]
+        return self.__move_towards(taxi_row, taxi_col, *dest_loc)
+
+    def __move_towards(self, taxi_row: int, taxi_col: int, target_row: int, target_col: int) -> int:
+        if taxi_row < target_row:
+            return self._actions["down"]
+        elif taxi_row > target_row:
+            return self._actions["up"]
+        elif taxi_col < target_col:
+            return self._actions["right"]
+        elif taxi_col > target_col:
+            return self._actions["left"]
+        else:
+            # Should never reach here
+            return self._actions["pickup"]
+
+
 class BasicQAgent(TaxiAgent):
     def __init__(self, epsilon: EpsilonGreedy, learning_rate: float, discount_factor: float) -> None:
-        super().__init__()
+        super().__init__(epsilon)
 
-        self._epsilon = epsilon
         self._learning_rate = learning_rate
         self._discount = discount_factor
         self._q_table = np.zeros((self._env.observation_space.n, self._env.action_space.n)) # type: ignore
@@ -160,9 +251,7 @@ class BasicQAgent(TaxiAgent):
         with open("static/weights/q_table.npy", "wb") as f:
             np.save(f, self._q_table)
 
-    def _get_action(self, state: int, is_training: bool)-> int:
-        if self._epsilon.should_be_random and is_training:
-            return self._env.action_space.sample()
+    def _get_action(self, state: int)-> int:
         return np.argmax(self._q_table[state]).item()
 
     def _update(self, state: int, action: int, reward: float, next_state: int, terminated: bool) -> None:
@@ -171,17 +260,14 @@ class BasicQAgent(TaxiAgent):
         """
         if terminated:
             reward = 0
-            # Update the epsilon value
-            self._epsilon.update()
 
         self._q_table[state, action] += self._learning_rate * \
                 (reward + self._discount * np.max(self._q_table[next_state]) - self._q_table[state, action])
 
 class SarsaAgent(TaxiAgent):
     def __init__(self, epsilon: EpsilonGreedy, learning_rate: float, discount_factor: float) -> None:
-        super().__init__()
+        super().__init__(epsilon)
 
-        self._epsilon = epsilon
         self._learning_rate = learning_rate
         self._discount = discount_factor
         self._q_table = np.zeros((self._env.observation_space.n, self._env.action_space.n)) # type: ignore
@@ -198,9 +284,7 @@ class SarsaAgent(TaxiAgent):
         with open("static/weights/sarsa_q_table.npy", "wb") as f:
             np.save(f, self._q_table)
 
-    def _get_action(self, state: int, is_training: bool)-> int:
-        if self._epsilon.should_be_random and is_training:
-            return self._env.action_space.sample()
+    def _get_action(self, state: int)-> int:
         return np.argmax(self._q_table[state]).item()
 
     def _update(self, state: int, action: int, reward: float, next_state: int, terminated: bool) -> None:
@@ -209,7 +293,6 @@ class SarsaAgent(TaxiAgent):
         """
         if terminated:
             reward = 0
-            self._epsilon.update()
 
         self._q_table[state, action] = (1 - self._learning_rate) * self._q_table[state, action] + \
             self._learning_rate * \
@@ -218,17 +301,17 @@ class SarsaAgent(TaxiAgent):
 
 
 class DeepQAgent(TaxiAgent):
-    def __init__(self, epsilon: EpsilonGreedy,
+    def __init__(self,
+                 epsilon: EpsilonGreedy,
                  learning_rate: float,
                  discount_factor: float,
                  batch_size: int,
                  memory_size: int) -> None:
-        super().__init__()
+        super().__init__(epsilon)
 
         self._replay = deque(maxlen=memory_size)
         self._s_batch = batch_size
 
-        self._epsilon = epsilon
         self._discount = discount_factor
 
         self.__step_counter = 0
@@ -262,10 +345,7 @@ class DeepQAgent(TaxiAgent):
         ])
         return model
 
-    def _get_action(self, state: int, is_training: bool) -> int:
-        if self._epsilon.should_be_random and is_training:
-            return self._env.action_space.sample()
-
+    def _get_action(self, state: int) -> int:
         q_values = self._policy(np.array([state], dtype=np.float32))
         return np.argmax(q_values[0]).item()
     
@@ -279,8 +359,7 @@ class DeepQAgent(TaxiAgent):
         loss = self.__train()
 
         if terminated:
-            self._epsilon.update() # Saves epsilon history too
-            # Save loss and epsilon
+            # Save loss
             self._loss_history_episode.append(loss)
 
         self.__step_counter += 1
@@ -325,6 +404,15 @@ class DeepQAgent(TaxiAgent):
 
 
 if __name__ == "__main__":
+    random_policy = RandomPolicyAgent()
+    metrics = random_policy.train(10000, 1000)
+    metrics.plot(None)
+
+    heuristic_policy = HeuristicPolicyAgent()
+    metrics = heuristic_policy.train(10000, 1000)
+    metrics.plot(None)
+    heuristic_policy.watch(2, 30)
+
     basic = BasicQAgent(EpsilonGreedy(1.0, 0.999, 0.00), 0.1, 0.95)
     metrics = basic.train(10000, 1000)
     metrics.plot('static/metrics/basic.png')
