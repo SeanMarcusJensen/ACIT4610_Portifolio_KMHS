@@ -1,2 +1,2 @@
 from .epsilon_greedy import EpsilonGreedy
-from .metrics import Metrics
+from .agent_metrics import AgentMetrics

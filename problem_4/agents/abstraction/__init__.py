@@ -1,1 +1,2 @@
-from .agent import Agent
+__all__ = ['TaxiAgent']
+from .taxi_agent import TaxiAgent
