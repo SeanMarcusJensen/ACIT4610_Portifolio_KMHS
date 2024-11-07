@@ -8,6 +8,7 @@ from utils import EpsilonGreedy
 from .abstraction import TaxiAgent
 from keras.api.layers import Embedding, Flatten, Dense
 
+
 class DeepQAgent(TaxiAgent):
     def __init__(self,
                  epsilon: EpsilonGreedy,
@@ -24,9 +25,11 @@ class DeepQAgent(TaxiAgent):
 
         self.__step_counter = 0
 
-        self._policy = self.__create_model(self._env.observation_space.n, self._env.action_space.n) # type: ignore
-        self._target = self.__create_model(self._env.observation_space.n, self._env.action_space.n) # type: ignore
-        self._target.set_weights(self._policy.get_weights()) # sync
+        self._policy: keras.Model = self.__create_model(
+            self._env.observation_space.n, self._env.action_space.n)  # type: ignore
+        self._target = self.__create_model(
+            self._env.observation_space.n, self._env.action_space.n)  # type: ignore
+        self._target.set_weights(self._policy.get_weights())  # sync
 
         self._optimizer = keras.optimizers.Adam(learning_rate=learning_rate)
         self._loss_fn = keras.losses.Huber()
@@ -34,8 +37,11 @@ class DeepQAgent(TaxiAgent):
         self._loss_history_episode = []
 
     def _load(self) -> None:
-        assert os.path.exists("static/weights/policy.keras"), "Weights not found!"
-        return keras.models.load_model('static/weights/policy.keras')  # type: ignore
+        assert os.path.exists(
+            "static/weights/policy.keras"), "Weights not found!"
+
+        self._policy = keras.models.load_model(  # type: ignore
+            'static/weights/policy.keras', compile=False)
 
     def _save(self) -> None:
         if not os.path.exists("static/weights"):
@@ -51,12 +57,13 @@ class DeepQAgent(TaxiAgent):
             Dense(64, activation='relu'),
             Dense(n_actions, activation='linear')
         ])
+
         return model
 
     def _get_action(self, state: int) -> int:
         q_values = self._policy(np.array([state], dtype=np.float32))
-        return np.argmax(q_values[0]).item()
-    
+        return np.argmax(q_values).item()
+
     def _update(self, state: int, action: int, reward: float, next_state: int, terminated: bool) -> None:
         self._replay.append((state, action, reward, next_state, terminated))
 
@@ -75,19 +82,17 @@ class DeepQAgent(TaxiAgent):
             self._target.set_weights(self._policy.get_weights())
 
     def __train(self) -> float:
-        if len(self._replay) < self._s_batch:
-            return -np.inf
-
         minibatch = random.sample(self._replay, self._s_batch)
         states, actions, rewards, next_states, dones = map(
             np.array, zip(*minibatch))
 
-        actions_one_hot = tf.one_hot(actions, self._env.action_space.n) # type: ignore
+        actions_one_hot = tf.one_hot(
+            actions, self._env.action_space.n)  # type: ignore
 
         loss = self.train_steps(states, actions_one_hot,
                                 rewards, next_states, dones)
 
-        return loss # type: ignore
+        return loss  # type: ignore
 
     @tf.function
     def train_steps(self, states, actions, rewards, next_states, dones):
@@ -110,8 +115,11 @@ class DeepQAgent(TaxiAgent):
 
         return loss
 
+
 if __name__ == "__main__":
+    from utils import create_progress_tracker
     dql = DeepQAgent(EpsilonGreedy(1.0, 0.998, 0.00), 0.0001, 0.95, 258, 25000)
-    metrics = dql.train(2500, 1000)
+    metrics = dql.train(
+        200, 200, create_progress_tracker("Deep Q-Learning Agent"))
     metrics.plot('static/metrics/dql.png')
     dql.record_video(3, 'static/movies/dql')

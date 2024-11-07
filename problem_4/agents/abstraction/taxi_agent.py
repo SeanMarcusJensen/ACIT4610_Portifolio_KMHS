@@ -1,8 +1,9 @@
 import gymnasium as gym
 from utils import EpsilonGreedy
 from abc import ABC, abstractmethod
-from gymnasium.wrappers import RecordVideo 
+from gymnasium.wrappers import RecordVideo
 from utils import AgentMetrics
+from typing import Callable
 
 
 class TaxiAgent(ABC):
@@ -10,13 +11,15 @@ class TaxiAgent(ABC):
         self.metrics = AgentMetrics()
         self._epsilon = epsilon
 
-        self._env = gym.make("Taxi-v3") # Needed for subclasses to initialize.
+        self._env = gym.make("Taxi-v3")  # Needed for subclasses to initialize.
 
-        self._actions = {"down": 0, "up": 1, "right": 2, "left": 3, "pickup": 4, "dropoff": 5}
-        self._locations = [(0, 0), (0, 4), (4, 0), (4, 3)] # R, G, Y, B
+        self._actions = {"down": 0, "up": 1, "right": 2,
+                         "left": 3, "pickup": 4, "dropoff": 5}
+        self._locations = [(0, 0), (0, 4), (4, 0), (4, 3)]  # R, G, Y, B
 
-    def train(self, n_episodes: int, step_limit_per_episode: int) -> AgentMetrics:
-        metrics = self.__run(n_episodes, step_limit_per_episode, is_training=True)
+    def train(self, n_episodes: int, step_limit_per_episode: int, on_episode_do: Callable[[int, int], None] = lambda x, y: None) -> AgentMetrics:
+        metrics = self.__run(
+            n_episodes, step_limit_per_episode, is_training=True, on_episode_do=on_episode_do)
         self._save()
         return metrics
 
@@ -28,25 +31,28 @@ class TaxiAgent(ABC):
     def record_video(self, n_episodes: int, path: str) -> None:
         self._load()
         self._env = gym.make("Taxi-v3", render_mode="rgb_array")
-        self._env = RecordVideo(self._env, video_folder=path, disable_logger=True)
-        self.__run(n_episodes, 100, is_training=False) 
+        self._env = RecordVideo(
+            self._env, video_folder=path, disable_logger=True)
+        self.__run(n_episodes, 100, is_training=False)
 
-    def __run(self, n_episodes: int, step_limit_per_episode: int, is_training: bool) -> AgentMetrics:
-        for _ in range(n_episodes):
+    def __run(self, n_episodes: int, step_limit_per_episode: int, is_training: bool, on_episode_do: Callable[[int, int], None] = lambda x, y: None) -> AgentMetrics:
+        for episode in range(n_episodes + 1):
             state = self._env.reset()[0]
             episode_reward = 0.0
             episode_steps = 0
             for _ in range(step_limit_per_episode):
 
                 if is_training and self._epsilon.should_be_random:
-                    action = self._get_action(state)
+                    action = self._env.action_space.sample()
                 else:
                     action = self._get_action(state)
 
-                next_state, reward, terminated, truncated, _ = self._env.step(action)
+                next_state, reward, terminated, truncated, _ = self._env.step(
+                    action)
 
                 if is_training:
-                    self._update(state, action, reward.__float__(), next_state, terminated or truncated)
+                    self._update(state, action, reward.__float__(),
+                                 next_state, terminated or truncated)
 
                 state = next_state
                 episode_reward += reward.__float__()
@@ -55,9 +61,9 @@ class TaxiAgent(ABC):
                 if terminated or truncated:
                     break
 
-            self._epsilon.update()
-            self.metrics.episode_rewards.append(episode_reward)
-            self.metrics.episode_steps.append(episode_steps)
+            self.metrics.add(episode_reward, episode_steps,
+                             self._epsilon.update())
+            on_episode_do(episode, n_episodes)
 
         return self.metrics
 

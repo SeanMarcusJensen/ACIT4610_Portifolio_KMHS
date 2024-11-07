@@ -9,12 +9,11 @@ class EpsilonGreedy:
     value: float
     decay: float
     min: float
-    history: List[float] = field(default_factory=list)
 
     @property
     def should_be_random(self) -> bool:
         return np.random.rand() < self.value
 
-    def update(self):
+    def update(self) -> float:
         self.value = max(self.min, self.value * self.decay)
-        self.history.append(self.value)
+        return self.value
