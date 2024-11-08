@@ -32,6 +32,6 @@ if __name__ == '__main__':
         EpsilonGreedy(1.0, 0.998, 0.00),
         0.0001, 0.95, 258, 25000)
     metrics = dql.train(
-        200, 200, create_progress_tracker("Deep Q-Learning Agent"))
+        2500, 200, create_progress_tracker("Deep Q-Learning Agent"))
     metrics.plot('static/metrics/dql.png')
     dql.record_video(3, 'static/movies/dql')

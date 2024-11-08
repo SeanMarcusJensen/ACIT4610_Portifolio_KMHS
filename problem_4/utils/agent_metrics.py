@@ -12,20 +12,11 @@ class AgentMetrics:
     episode_steps: list = field(default_factory=list)
     episode_epsilon: list = field(default_factory=list)
     episode_time: list = field(default_factory=list)
-    start_time: datetime.datetime | None = None
 
     def add(self, rewards: float, steps: int, epsilon: float) -> None:
-        # only set start_time once
-        current_time = datetime.datetime.now()
-        self.start_time = self.start_time or current_time
-
-        # elapsed_time = current_time - self.start_time
-        # if len(self.episode_time) > 0:
-        #     elapsed_time = current_time + self.episode_time[-1]
-
         self.episode_rewards.append(rewards)
         self.episode_steps.append(steps)
-        # self.episode_time.append(elapsed_time)
+        self.episode_time.append(datetime.datetime.now())
         self.episode_epsilon.append(epsilon)
 
     def as_dict(self) -> dict:
@@ -39,9 +30,9 @@ class AgentMetrics:
     def as_pandas(self) -> pd.DataFrame:
         return pd.DataFrame(self.as_dict())
 
-    def plot(self, path: str | None) -> None:
+    def plot(self, path: str | None = None, name: str | None = None) -> None:
         """ Plot the rewards, steps, and epsilon over episodes with improved aesthetics. """
-        episodes = np.arange(1, len(self.episode_rewards) + 1)
+        episodes = np.arange(1, len(self.episode_rewards))
 
         # Ensure all data series are of the same length
         rewards = np.array(self.episode_rewards[:len(episodes)])
@@ -89,8 +80,7 @@ class AgentMetrics:
         # ax3.plot(episodes, time, ':', label='Time',
         #          color='tab:red', linewidth=2)
 
-        # Titles and legends
-        plt.title('Training Metrics')
+        plt.title('Training Metrics ' + (name or ''))
         fig.tight_layout()  # Adjust layout to not overlap labels
         ax1.legend(loc='upper left')
         ax2.legend(loc='upper right')
