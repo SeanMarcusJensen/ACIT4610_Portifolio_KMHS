@@ -8,7 +8,6 @@ from typing import Callable
 
 class TaxiAgent(ABC):
     def __init__(self, epsilon: EpsilonGreedy) -> None:
-        self.metrics = AgentMetrics()
         self._epsilon = epsilon
 
         self._env = gym.make("Taxi-v3")  # Needed for subclasses to initialize.
@@ -36,7 +35,8 @@ class TaxiAgent(ABC):
         self.__run(n_episodes, 100, is_training=False)
 
     def __run(self, n_episodes: int, step_limit_per_episode: int, is_training: bool, on_episode_do: Callable[[int, int], None] = lambda x, y: None) -> AgentMetrics:
-        for episode in range(n_episodes + 1):
+        metrics = AgentMetrics()
+        for episode in range(1, n_episodes + 1):
             state = self._env.reset()[0]
             episode_reward = 0.0
             episode_steps = 0
@@ -61,11 +61,11 @@ class TaxiAgent(ABC):
                 if terminated or truncated:
                     break
 
-            self.metrics.add(episode_reward, episode_steps,
+            metrics.add(episode_reward, episode_steps,
                              self._epsilon.update())
             on_episode_do(episode, n_episodes)
 
-        return self.metrics
+        return metrics
 
     @abstractmethod
     def _load(self) -> None:
