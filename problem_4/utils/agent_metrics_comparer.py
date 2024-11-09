@@ -3,11 +3,12 @@ from .agent_metrics import AgentMetrics
 import pandas as pd
 import matplotlib.pyplot as plt
 
+
 class AgentMetricsComparer:
     def __init__(self, metrics: dict[str, AgentMetrics] | None = None, dir_name: str | None = None):
         self.data: dict[str, pd.DataFrame] = {}
         if metrics is not None:
-            self.data = {k:v.as_pandas() for k, v in metrics.items()}
+            self.data = {k: v.as_pandas() for k, v in metrics.items()}
         elif dir_name is not None:
             for file in os.listdir(dir_name):
                 file_name = os.fsdecode(file)
@@ -20,7 +21,7 @@ class AgentMetricsComparer:
 
         assert len(self.data) > 2, "Need two or more metrics to compare."
 
-    def plot(self, key):
+    def plot(self, key, window: int = 50, fig_size: tuple[int, int] = (15, 6)):
         # Ensure all data series are of the same length
         import numpy as np
         data = self.data[key]
@@ -30,7 +31,7 @@ class AgentMetricsComparer:
         steps = np.array(data.loc[:episodes, 'steps'])
         epsilon = np.array(data.loc[:episodes, 'epsilon'])
 
-        fig, ax1 = plt.subplots(figsize=(10, 6))
+        fig, ax1 = plt.subplots(figsize=fig_size)
 
         # Plot rewards per episode
         color = 'tab:blue'
@@ -40,10 +41,9 @@ class AgentMetricsComparer:
                  color=color, linewidth=2)
 
         # Compute a moving average for rewards (window size of 50).
-        window_size = 50
-        if len(rewards) >= window_size:
-            ax1.plot(data['rewards'].rolling(window_size).mean(),
-                     label=f'Moving Avg (Window: {window_size})', color='orange', linewidth=2)
+        if len(rewards) >= window:
+            ax1.plot(data['rewards'].rolling(window).mean(),
+                     label=f'Moving Avg (Window: {window})', color='orange', linewidth=2)
 
         # Scale steps to match the range of rewards
         ax1.plot(steps, label='Scaled Steps',
@@ -65,8 +65,8 @@ class AgentMetricsComparer:
         ax1.legend(loc='upper left')
         ax2.legend(loc='upper right')
 
-    def compare_time(self, keys: list[str], window: int = 50):
-        fig, axs = plt.subplots(1, len(keys), figsize=(15, 6))
+    def compare_time(self, keys: list[str], window: int = 50, fig_size: tuple[int, int] = (15, 6)):
+        fig, axs = plt.subplots(1, len(keys), figsize=fig_size)
 
         for index, key in enumerate(keys):
             frame = self[key]
@@ -74,9 +74,12 @@ class AgentMetricsComparer:
             random = self['random']
             heuristics = self['heuristic']
             axs[index].set_title(f'Time Comparison (Model: {key.title()})')
-            axs[index].plot(random.loc[1:frame_len, 'time'].rolling(window).mean(), label='random')
-            axs[index].plot(heuristics.loc[1:frame_len, 'time'].rolling(window).mean(), label='heuristic')
-            axs[index].plot(frame.loc[1:frame_len, 'time'].rolling(window).mean(), label=key)
+            axs[index].plot(random.loc[0:frame_len, 'time'].rolling(
+                window).mean(), label='random')
+            axs[index].plot(heuristics.loc[0:frame_len, 'time'].rolling(
+                window).mean(), label='heuristic')
+            axs[index].plot(frame.loc[0:frame_len, 'time'].rolling(
+                window).mean(), label=key)
             axs[index].legend()
             axs[index].set_xlabel('Episodes')
             axs[index].set_ylabel(f'Avg Time (W: {window})')
@@ -84,11 +87,11 @@ class AgentMetricsComparer:
 
         fig.tight_layout()
         plt.show()
-    
-    def compare_rewards(self, keys: list[str]):
+
+    def compare_rewards(self, keys: list[str], fig_size: tuple[int, int] = (15, 6)):
         """ Plots the cummulative rewards for the agent.
         """
-        fig, axs = plt.subplots(1, len(keys), figsize=(15, 6))
+        fig, axs = plt.subplots(1, len(keys), figsize=fig_size)
 
         for index, key in enumerate(keys):
             frame = self[key]
@@ -96,9 +99,12 @@ class AgentMetricsComparer:
             random = self['random']
             heuristics = self['heuristic']
             axs[index].set_title(f'Rewards Comparison (Model: {key.title()})')
-            axs[index].plot(random.loc[:frame_len, 'rewards'].cumsum(), label='random')
-            axs[index].plot(heuristics.loc[:frame_len, 'rewards'].cumsum(), label='heuristic')
-            axs[index].plot(frame.loc[:frame_len, 'rewards'].cumsum(), label=key)
+            axs[index].plot(
+                random.loc[:frame_len, 'rewards'].cumsum(), label='random')
+            axs[index].plot(heuristics.loc[:frame_len,
+                            'rewards'].cumsum(), label='heuristic')
+            axs[index].plot(
+                frame.loc[:frame_len, 'rewards'].cumsum(), label=key)
             axs[index].legend()
             axs[index].set_xlabel('Episodes')
             axs[index].set_ylabel('Cummulatice Rewards')
@@ -106,9 +112,9 @@ class AgentMetricsComparer:
 
         fig.tight_layout()
         plt.show()
-    
-    def compare_steps(self, keys: list[str], window: int = 50):
-        fig, axs = plt.subplots(1, len(keys), figsize=(15, 6), sharey=True)
+
+    def compare_steps(self, keys: list[str], window: int = 50, fig_size: tuple[int, int] = (15, 6)):
+        fig, axs = plt.subplots(1, len(keys), figsize=fig_size, sharey=True)
 
         for index, key in enumerate(keys):
             frame = self[key]
@@ -116,9 +122,12 @@ class AgentMetricsComparer:
             random = self['random']
             heuristics = self['heuristic']
             axs[index].set_title(f'Steps Comparison (Model: {key.title()})')
-            axs[index].plot(random.loc[:frame_len, 'steps'].rolling(window).mean(), label='random')
-            axs[index].plot(heuristics.loc[:frame_len, 'steps'].rolling(window).mean(), label='heuristic')
-            axs[index].plot(frame.loc[:frame_len, 'steps'].rolling(window).mean(), label=key)
+            axs[index].plot(random.loc[:frame_len, 'steps'].rolling(
+                window).mean(), label='random')
+            axs[index].plot(heuristics.loc[:frame_len, 'steps'].rolling(
+                window).mean(), label='heuristic')
+            axs[index].plot(frame.loc[:frame_len, 'steps'].rolling(
+                window).mean(), label=key)
             axs[index].legend()
             axs[index].set_xlabel('Episodes')
             axs[index].set_ylabel(f'Avg Steps (w: {window})')
@@ -126,17 +135,13 @@ class AgentMetricsComparer:
 
         fig.tight_layout()
         plt.show()
-    
-    def _get_figure(self, fig_size=(10, 6)):
-        fig, ax = plt.subplots(figsize=fig_size)
-        return fig, ax
-    
+
     def __getitem__(self, key):
         return self.data[key]
+
 
 if __name__ == "__main__":
     plotter = AgentMetricsComparer(dir_name='static/metrics')
     plotter.compare_steps(['basic', 'sarsa', 'dql'])
     plotter.compare_rewards(['basic', 'sarsa', 'dql'])
     plotter.compare_time(['basic', 'sarsa', 'dql'])
-
