@@ -41,6 +41,8 @@ class Vehicle:
 
     Attributes:
         max_capacity (int): The maximum capacity of the vehicle.
+        penalty_early (int): Penalty value for showing up at customer location early.
+        penalty_late (int): Penalty value for showing up at customer location late.
     """
     def __init__(self, max_capacity: int) -> None:
         self.max_capacity = max_capacity
@@ -100,11 +102,11 @@ class ACO:
     """Manages the Ant Colony Optimization process for solving the VRPTW.
 
     Attributes:
-        locations_df (pd.DataFrame): Data containing locations and parameters.
         n_vehicles (int): Number of vehicles (ants) available for service.
         n_iterations (int): Number of iterations to run the ACO algorithm.
         aco_params (ACOParameters): Instance of ACOParameters managing parameters and pheromone levels.
         max_capacity (int): The maximum capacity each vehicle can carry.
+        locations_df (pd.DataFrame): DataFrame containing locations and parameters.
         distances (np.ndarray): Matrix of distances between each location.
         demands (List[int]): List of demands for each customer.
         time_windows (List[Tuple[int, int]]): List of time windows (ready and due times) for each customer.
@@ -115,7 +117,6 @@ class ACO:
         self.n_iterations = n_iterations
         self.aco_params = aco_params
         self.max_capacity = max_capacity
-        
         self.n_locations = len(locations_df)
         self.distances = DistanceMatrix(locations_df).matrix
         self.demands = locations_df['Demand'].tolist()
@@ -199,7 +200,7 @@ class ACO:
 
         return solution, total_cost, current_capacity, time_window_violations
 
-    def run_loop(self) -> Tuple[List[List[int]], List[float], List[int], int, List[float], int]:
+    def optimize(self) -> Tuple[List[List[int]], List[float], List[int], int, List[float], int]:
         all_vehicle_solutions = []
         all_route_distances = []
         all_route_violations = []
@@ -261,6 +262,6 @@ class ACO:
         # Return solutions for the best iteration
         best_vehicle_solutions = all_vehicle_solutions[best_iteration_index]
         best_distances = all_route_distances[best_iteration_index]
-        best_violations = all_route_violations[best_iteration_index]
+        time_window_violations = all_route_violations[best_iteration_index]
         
-        return best_vehicle_solutions, best_distances, best_violations, max_customers_visited, total_distances, best_iteration_index
+        return best_vehicle_solutions, best_distances, time_window_violations, max_customers_visited, total_distances, best_iteration_index

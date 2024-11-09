@@ -10,8 +10,8 @@ class PSOParameters:
 
     Attributes:
         n_particles (int): Number of particles initialized.
-        c1 (float): Cognitive coefficient that decides the importance of personal best solution.
-        c2 (float): Social coefficient that decides the importance of neighborhood best solution.
+        c1 (float): Cognitive coefficient that decides the importance of personal best solution (explotiation).
+        c2 (float): Social coefficient that decides the importance of neighborhood best solution (exploration).
         inertia_weight (float): Weight applied to the particle's previous velocity, balancing exploration and exploitation.
     """
     def __init__(self, n_particles: int, c1: float = 2.0, c2: float = 2.0, inertia_weight: float = 0.8) -> None:
@@ -25,13 +25,15 @@ class PSOParameters:
         self.inertia_weight = self.inertia_weight - ((self.inertia_weight - final_weight) * (iteration / max_iterations))
 
 class Particle:
-    """Represents a particle for solving the PSO.
+    """Represents a particle for solving the VRPTW.
     
     Attributes:
+        n_customers (int): The number of customers.
         routes (List[List[int]]): Routes representing customers visited by each vehicle.
         velocity (List[List[int]]): Placeholder for the velocity of each particle (if using swap moves, etc.)
         best_routes (List[List[int]]): The best routes found by this particle.
-        best_fitness (float): Best fitness (shortest distance) achieved by the particle.
+        best_fitness (float): Best fitness (minimal distance and penalties) achieved by the particle.
+        time_windows (List[Tuple[int, int]]): Time windows for each customer. Represents ready time and due time.
     """
     def __init__(self, n_vehicles: int, customer_data: pd.DataFrame, max_capacity: float, distance_matrix: DistanceMatrix, time_windows: List[Tuple[int, int]]):
         self.n_customers = len(customer_data) - 1 # Exclude depot
@@ -159,8 +161,14 @@ class PSO:
     """Manages the Particle Swarm Optimization process for solving VRPTW.
     
     Attributes:
+        locations_df (pd.DataFrame): DataFrame containing locations and parameters.
         n_particles (int): Number of particles in the swarm.
         n_iterations (int): Number of iterations to run the PSO algorithm.
+        pso_params (PSOParameters): Instance of ACOParameters managing parameters.
+        max_capacity (int): The maximum capacity each vehicle can carry.
+        distance_matrix (DistanceMatrix): Matrix of distances between each location.
+        demands (List[int]): List of demands for each customer.
+        time_windows (List[Tuple[int, int]]): List of time windows (ready and due times) for each customer.
         particles (List[Particle]): List of particles in the swarm.
         best_global_routes (List[List[int]]): Best routes found across all particles.
         best_global_fitness (float): Best fitness score found across all particles.
@@ -172,7 +180,6 @@ class PSO:
         self.pso_params = pso_parameters
         self.max_capacity = max_capacity
         self.distance_matrix = DistanceMatrix(locations_df)
-
         self.demands = locations_df['Demand'].tolist()
         self.time_windows = list(zip(locations_df['ReadyTime'], locations_df['Due']))
         
@@ -181,7 +188,7 @@ class PSO:
         max_active_vehicles = max(p.active_vehicles for p in self.particles)
 
         self.best_global_routes = [[] for _ in range(max_active_vehicles)]
-        self.best_global_fitness = float('inf')
+        self.best_global_cost = float('inf')
 
     def update_particles(self):
         """Updates the routes of each particle based on customers indices (Not regular velocity)."""
@@ -197,7 +204,7 @@ class PSO:
                 swap_made = False
 
                 if len(current_route) > 3: # Only swap if route has more than one customer
-                    for customer in range(1, len(current_route) - 1):  # Skip depot
+                    for customer in range(1, len(current_route) - 1): # Skip depot
                         if swap_made:
                             break
 
@@ -211,7 +218,7 @@ class PSO:
                             dist_to_pbest = abs(customer_index_pbest - customer)
                             dist_to_gbest = abs(customer_index_gbest - customer)
 
-                            # Calculate swap chance based on distance and randomness
+                            # Calculate swap chance based on distance and random float values
                             swap_chance = (
                                 self.pso_params.inertia_weight * particle.velocity[vehicle][customer - 1] +
                                 self.pso_params.c1 * r1 * (1 / (dist_to_pbest + 1)) +
@@ -285,7 +292,7 @@ class PSO:
         for i in range(self.n_iterations):
             print(f"\n______________________________________________ITERATION {i + 1}______________________________________________")
 
-            iteration_best_distance = float('inf') # Track best particle distance per iteration
+            iteration_best_cost = float('inf') # Track best particle distance per iteration
 
             for j, particle in enumerate(self.particles):
                 # Evaluate the fitness of each particle's route
@@ -298,9 +305,9 @@ class PSO:
                     particle.best_routes = particle.routes
                 
                 # Update global best if current particle's fitness is better
-                if fitness < self.best_global_fitness:
-                    self.best_global_fitness = fitness
-                    iteration_best_distance = fitness
+                if fitness < self.best_global_cost:
+                    self.best_global_cost = fitness
+                    iteration_best_cost = fitness
                     # Extend or update global best with current particle's best active routes
                     self.best_global_routes = [particle.routes[v][:] if v < particle.active_vehicles else [] for v in range(len(self.best_global_routes))]
                     best_distances = route_distances
@@ -308,15 +315,15 @@ class PSO:
                     best_solution_index = j
                     max_customers_visited = sum(len(route) - 2 for route in particle.routes)  # Exclude depots
 
-            # Append the best distance for this iteration
-            if iteration_best_distance < float('inf'):
-                total_distances.append(iteration_best_distance)
+            # Append best cost for this iteration
+            if iteration_best_cost < float('inf'):
+                total_distances.append(iteration_best_cost)
             else:
-                # Handle the case where no valid distance was found in an iteration (if applicable)
-                total_distances.append(self.best_global_fitness)  # or another placeholder
+                # Append best global cost
+                total_distances.append(self.best_global_cost)
 
             print(f"Global Best routes: {self.best_global_routes}")
-            print(f"Global Best Fitness: {self.best_global_fitness}")
+            print(f"Global Best Cost: {self.best_global_cost}")
             
             # Update all particle routes based on current bests
             self.update_particles()
