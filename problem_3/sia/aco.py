@@ -176,17 +176,13 @@ class ACO:
                 continue
 
             else:
-                if current_capacity >= self.demands[next_customer]:
-                    current_time = arrival_time + self.service_times[next_customer]
-                    current_capacity -= self.demands[next_customer]
-                    solution.append(next_customer)
-                    current_customer = next_customer
-                    unvisited_customers.remove(next_customer)
-                    print(f"Arrived on time at {next_customer}")
-                    print(f"Remaining capacity {current_capacity}, unvisited customers: {unvisited_customers}")
-                else:
-                    print(f"Cannot visit customer {next_customer}, insufficient capacity after service.")
-                    continue
+                current_time = arrival_time + self.service_times[next_customer]
+                current_capacity -= self.demands[next_customer]
+                solution.append(next_customer)
+                current_customer = next_customer
+                unvisited_customers.remove(next_customer)
+                print(f"Arrived on time at {next_customer}")
+                print(f"Remaining capacity {current_capacity}, unvisited customers: {unvisited_customers}")
 
             # Check if the remaining capacity can serve any unvisited customer
             if current_capacity < min([self.demands[customer] for customer in unvisited_customers], default=0):
