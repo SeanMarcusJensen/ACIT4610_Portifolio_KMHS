@@ -51,7 +51,7 @@ class DeepQAgent(TaxiAgent):
 
     def __create_model(self, n_states: int, n_actions: int) -> keras.Model:
         model = keras.Sequential([
-            Embedding(n_states, 128, input_length=1),
+            Embedding(n_states, 128),
             Flatten(),
             Dense(128, activation='relu'),
             Dense(64, activation='relu'),

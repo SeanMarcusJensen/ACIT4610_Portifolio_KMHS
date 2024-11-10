@@ -21,10 +21,13 @@ class AgentMetricsComparer:
 
         assert len(self.data) > 2, "Need two or more metrics to compare."
 
-    def plot(self, key, window: int = 50, fig_size: tuple[int, int] = (15, 6)):
+    def plot_metric(self, key, window: int = 50, fig_size: tuple[int, int] = (15, 6)):
+        self.plot(self[key], window, fig_size)
+    
+    @staticmethod
+    def plot(data, window: int = 50, fig_size: tuple[int, int] = (15, 6)):
         # Ensure all data series are of the same length
         import numpy as np
-        data = self.data[key]
         episodes = len(data)
 
         rewards = np.array(data.loc[:episodes, 'rewards'])
@@ -60,10 +63,11 @@ class AgentMetricsComparer:
         ax2.set_xlim(xmin=0, xmax=episodes)
         ax2.set_ylim(ymin=0, ymax=1.0)
 
-        plt.title('Training Metrics ' + (key or ''))
+        plt.title('Training Metrics')
         fig.tight_layout()  # Adjust layout to not overlap labels
         ax1.legend(loc='upper left')
         ax2.legend(loc='upper right')
+        plt.show()
 
     def compare_time(self, keys: list[str], window: int = 50, fig_size: tuple[int, int] = (15, 6)):
         fig, axs = plt.subplots(1, len(keys), figsize=fig_size)
