@@ -25,9 +25,25 @@ class Vehicle:
         self.pos = np.array([np.random.randint(x[0], x[1]), np.random.randint(y[0], y[1])], dtype=int)
         self.vel = np.array([0, 0], dtype=int)
         self.pbest = self.pos.copy() # Make a copy, dont want this to change.
+        self.pbest_route = []
         self.capacity = capacity
         self.load = 0
         self.route = [] # List of CustomerNO.
+
+    def evaluate_pbest(self, distance_map: np.ndarray) -> float:
+        """ Calculates the travel time from depot through route, and back to depot.
+        """
+        travel_time = 0.0
+        if len(self.pbest_route) <= 0:
+            return travel_time
+
+        travel_time += distance_map[0, self.pbest_route[0]]
+        for i in range(0, len(self.pbest_route) - 1):
+            travel_time += distance_map[self.pbest_route[i], self.pbest_route[i+1]]
+
+        travel_time += distance_map[self.pbest_route[-1], 0] # Back to Depot.
+
+        return travel_time
 
     def evaluate(self, distance_map: np.ndarray) -> float:
         """ Calculates the travel time from depot through route, and back to depot.
@@ -189,7 +205,7 @@ if __name__ == '__main__':
     DATA_PATH = os.path.join(os.path.dirname(__file__), 'data', 'processed', 'c101.csv')
     customers = pd.read_csv(DATA_PATH)
 
-    N_ITER = 1000
+    N_ITER = 10000
     N_VEHICLES = 10
     VEHICLE_CAPACITY = 200
     WIDTH, HEIGHT = get_search_space(customers)
@@ -202,19 +218,15 @@ if __name__ == '__main__':
     fleet.assign_distance_map(customers)
 
     # PSO parameters
-    INERTIA = 0.9
-    COGNITIVE = 1.8
-    SOCIAL = 1.01
+    INERTIA = 0.5
+    COGNITIVE = 1.5
+    SOCIAL = 1.5
 
     # Initialize the global bests
     global_best_distance = float('inf')
     global_best_positions = [vehicle.pos for vehicle in fleet.vehicles]
 
     for i in range(N_ITER):
-        for vehicle in fleet.vehicles:
-            vehicle.load = 0
-            vehicle.route = []
-
         # 1. Decode Particle to Vehicle Route
         decode(customers, fleet)
 
@@ -226,8 +238,9 @@ if __name__ == '__main__':
                 global_best_positions = [v.pos.copy() for v in fleet.vehicles]
             
             # Update personal best if the new position has a better fitness
-            if fitness < vehicle.evaluate(DISTANCE_MATRIX):
+            if fitness < vehicle.evaluate_pbest(DISTANCE_MATRIX):
                 vehicle.pbest = vehicle.pos.copy()
+                vehicle.pbest_route = vehicle.route.copy()
 
 
         # 3. Update Cognitive and Social Best
@@ -243,35 +256,17 @@ if __name__ == '__main__':
             # Ensure the vehicle position remains within bounds
             vehicle.pos = np.clip(vehicle.pos, WIDTH[0], WIDTH[1])
 
+            vehicle.load = 0
+            vehicle.route = []
+
+
         print(f"Iteration {i + 1}/{N_ITER}, Best Distance: {global_best_distance}")
-
-    # for i in range(N_ITER):
-    #     decode(customers, fleet)
-
-    #     # Plot the customers and vehicles
-    #     plot(customers, fleet.vehicles)
-
-    #     # 2. Evaluate Route
-    #     for vehicle in fleet.vehicles:
-    #         fitness = vehicle.evaluate(DISTANCE_MATRIX)
-    #         print(f"Fitness: {fitness}")
-    #         print(vehicle.route)
-    #         lngs, lats = zip(*map(lambda x: (x.lng, x.lat), customers))
-    #         plt.plot(lngs, lats,'ro', c='red')
-    #         lats, lngs = zip(*[(customers[customer].lat, customers[customer].lng) for customer in vehicle.route])
-    #         plt.plot(lngs, lats)
-    #     plt.show()
-
-
-        # 3. Update Cognitive and Social Best
-
-        # 4. Move Particle
 
     # Plot the current vehicle routes and fitness for visualization
     plt.figure(figsize=(20, 10))
     for vehicle in fleet.vehicles:
         lngs, lats = zip(*[(customers[customer].lng, customers[customer].lat) for customer in vehicle.route])
-        plt.plot(lngs, lats, '-o', label=f'Vehicle Route')
+        plt.plot(lngs, lats, '-o', label='Vehicle Route')
     plt.scatter([c.lng for c in customers], [c.lat for c in customers], color='red', label='Customers')
     plt.scatter([v.pos[0] for v in fleet.vehicles], [v.pos[1] for v in fleet.vehicles], color='green', label='Vehicles')
     plt.legend()
