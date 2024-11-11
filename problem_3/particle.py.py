@@ -36,6 +36,7 @@ class Vehicle:
         if len(self.route) <= 0:
             return travel_time
 
+        travel_time += distance_map[0, self.route[0]]
         for i in range(0, len(self.route) - 1):
             travel_time += distance_map[self.route[i], self.route[i+1]]
 
@@ -174,51 +175,105 @@ def plot(customers: list[Customer], vehicles: list[Vehicle]):
                   length_includes_head=True, width=0.3)
     plt.show()
 
+
+def get_distance_map(customers: list[Customer]) -> np.ndarray:
+    distances = np.zeros((len(customers), len(customers)), dtype=float)
+    for i, vi in enumerate(customers):
+        for j, vj in enumerate(customers):
+            distances[i, j] = calculate_distance(vi.lng, vj.lng, vi.lat, vj.lat)
+    return distances
+
 if __name__ == '__main__':
     import os
+    import matplotlib.pyplot as plt
     DATA_PATH = os.path.join(os.path.dirname(__file__), 'data', 'processed', 'c101.csv')
     customers = pd.read_csv(DATA_PATH)
 
-    N_ITER = 10
+    N_ITER = 1000
     N_VEHICLES = 10
     VEHICLE_CAPACITY = 200
     WIDTH, HEIGHT = get_search_space(customers)
 
     fleet = Fleet(N_VEHICLES, VEHICLE_CAPACITY, get_search_space(customers))
     vehicles = [Vehicle(VEHICLE_CAPACITY, WIDTH, HEIGHT) for _ in range(N_VEHICLES)]
-    customers = Customer.create_from(customers.loc[1:])
+    customers = Customer.create_from(customers)
+    DISTANCE_MATRIX = get_distance_map(customers)
+    customers = customers[1:]
     fleet.assign_distance_map(customers)
 
-    plot(customers, vehicles)
+    # PSO parameters
+    INERTIA = 0.9
+    COGNITIVE = 1.8
+    SOCIAL = 1.01
 
-    """
-    Particle: [n, 2m]
-    n = orderer list of customers
-    2m = [x1, y1, x2, y2, ..., xm, ym]
+    # Initialize the global bests
+    global_best_distance = float('inf')
+    global_best_positions = [vehicle.pos for vehicle in fleet.vehicles]
 
-    Customers are ordered by priority, but what are priority
-    """
-
-    import matplotlib.pyplot as plt
     for i in range(N_ITER):
+        for vehicle in fleet.vehicles:
+            vehicle.load = 0
+            vehicle.route = []
+
+        # 1. Decode Particle to Vehicle Route
         decode(customers, fleet)
 
-        # Plot the customers and vehicles
-        plot(customers, fleet.vehicles)
-
+        # 2. Evaluate Route and Update Personal Bests
         for vehicle in fleet.vehicles:
-            print(vehicle.route)
-            lngs, lats = zip(*map(lambda x: (x.lng, x.lat), customers))
-            plt.plot(lngs, lats,'ro', c='red')
-            lats, lngs = zip(*[(customers[customer].lat, customers[customer].lng) for customer in vehicle.route])
-            plt.plot(lngs, lats)
-        plt.show()
-        break
+            fitness = vehicle.evaluate(DISTANCE_MATRIX)
+            if fitness < global_best_distance:
+                global_best_distance = fitness
+                global_best_positions = [v.pos.copy() for v in fleet.vehicles]
+            
+            # Update personal best if the new position has a better fitness
+            if fitness < vehicle.evaluate(DISTANCE_MATRIX):
+                vehicle.pbest = vehicle.pos.copy()
 
-        # 2. Evaluate Route
+
+        # 3. Update Cognitive and Social Best
+        for vehicle in fleet.vehicles:
+            # Calculate the cognitive and social components
+            cognitive_velocity = COGNITIVE * np.random.rand() * (vehicle.pbest - vehicle.pos)
+            social_velocity = SOCIAL * np.random.rand() * (global_best_positions[0] - vehicle.pos)
+
+            # Update velocity and position based on inertia, cognitive, and social components
+            vehicle.vel = (INERTIA * vehicle.vel + cognitive_velocity + social_velocity).astype(int)
+            vehicle.pos += vehicle.vel
+
+            # Ensure the vehicle position remains within bounds
+            vehicle.pos = np.clip(vehicle.pos, WIDTH[0], WIDTH[1])
+
+        print(f"Iteration {i + 1}/{N_ITER}, Best Distance: {global_best_distance}")
+
+    # for i in range(N_ITER):
+    #     decode(customers, fleet)
+
+    #     # Plot the customers and vehicles
+    #     plot(customers, fleet.vehicles)
+
+    #     # 2. Evaluate Route
+    #     for vehicle in fleet.vehicles:
+    #         fitness = vehicle.evaluate(DISTANCE_MATRIX)
+    #         print(f"Fitness: {fitness}")
+    #         print(vehicle.route)
+    #         lngs, lats = zip(*map(lambda x: (x.lng, x.lat), customers))
+    #         plt.plot(lngs, lats,'ro', c='red')
+    #         lats, lngs = zip(*[(customers[customer].lat, customers[customer].lng) for customer in vehicle.route])
+    #         plt.plot(lngs, lats)
+    #     plt.show()
+
 
         # 3. Update Cognitive and Social Best
 
         # 4. Move Particle
 
+    # Plot the current vehicle routes and fitness for visualization
+    plt.figure(figsize=(20, 10))
+    for vehicle in fleet.vehicles:
+        lngs, lats = zip(*[(customers[customer].lng, customers[customer].lat) for customer in vehicle.route])
+        plt.plot(lngs, lats, '-o', label=f'Vehicle Route')
+    plt.scatter([c.lng for c in customers], [c.lat for c in customers], color='red', label='Customers')
+    plt.scatter([v.pos[0] for v in fleet.vehicles], [v.pos[1] for v in fleet.vehicles], color='green', label='Vehicles')
+    plt.legend()
+    plt.show()
 
