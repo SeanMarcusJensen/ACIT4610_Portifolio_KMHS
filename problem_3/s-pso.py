@@ -27,11 +27,10 @@ class Customer:
             customers.append(Customer(*args.loc[columns]))
         return customers
 
-
-class Particle:
+class Vehicle:
     CAPACITY = 200
     INERTIA = 0.9
-    COGNITIVE = 0.5
+    COGNITIVE = 1.2
     SOCIAL = 0.5
     LOCAL = 1.5
     NEIGHBOR = 1.5
@@ -50,8 +49,8 @@ class Particle:
         self.due_timer = depot.due
         self.time_violation = 0
 
-    def copy(self) -> 'Particle':
-        particle = Particle(self.id, self.depot, self.bounds[0], self.bounds[1])
+    def copy(self) -> 'Vehicle':
+        particle = Vehicle(self.id, self.depot, self.bounds[0], self.bounds[1])
         particle.pos = self.pos.copy()
         particle.velocity = self.velocity.copy()
         particle.pbest = self.pbest.copy()
@@ -125,7 +124,7 @@ class Particle:
     def evaluate_pbest(self, cost_function: Callable[[float, float], float]) -> float:
         return cost_function(*self.pbest)
 
-    def update_velocity(self, gbest: 'Particle', lbest: 'Particle', nbest: 'Particle') -> None:
+    def update_velocity(self, gbest: 'Vehicle', lbest: 'Vehicle', nbest: 'Vehicle') -> None:
         R1, R2, R3, R4 = np.random.rand(4)
         cog = self.COGNITIVE * R1 * (self.pbest - self.pos)
         glob = self.SOCIAL * R2 * (gbest.pos - self.pos)
@@ -137,8 +136,8 @@ class Particle:
 
     def update_position(self) -> None:
         self.pos += self.velocity
-        # self.pos[0] = np.clip(self.pos[0], *self.bounds[0])
-        # self.pos[1] = np.clip(self.pos[1], *self.bounds[1])
+        self.pos[0] = np.clip(self.pos[0], *self.bounds[0])
+        self.pos[1] = np.clip(self.pos[1], *self.bounds[1])
 
     def __str__(self) -> str:
         return f'Particle[id: {self.id}]'
@@ -146,24 +145,24 @@ class Particle:
     def __repr__(self) -> str:
         return f'Particle[id: {self.id}]'
 
-class PSO:
-    def __init__(self, n_particles: int, n_iters: int, bounds: tuple, depot: Customer):
-        self.particles = np.array([Particle(id+1, depot, *bounds) for id in range(n_particles)], dtype=Particle)
-        self.n_iters = n_iters
+class Particle:
+    def __init__(self, n_vehicles: int, bounds: tuple, depot: Customer) -> None:
+        self.particles = np.array([Vehicle(id+1, depot, *bounds) for id in range(n_vehicles)], dtype=Vehicle)
+        self.pbest = self.particles.copy()
 
     @staticmethod
     def get_customer_priority_list(customers: List[Customer]) -> List[Customer]:
         return sorted(customers, key=lambda x: x.ready_time)
     
-    def get_vehicle_priority_matrix(self, customers: List[Customer]) -> Dict[Customer, List[Particle]]:
-        priority: Dict[Customer, List[Particle]] = {}
+    def get_vehicle_priority_matrix(self, customers: List[Customer]) -> Dict[Customer, List[Vehicle]]:
+        priority: Dict[Customer, List[Vehicle]] = {}
         for customer in customers:
             priority[customer] = self.particles[
                     np.argsort([vehicle.distance_to_customer(customer) for vehicle in self.particles])] \
                             .tolist()
         return priority 
     
-    def construct_routes(self, priority_matrix: Dict[Customer, List[Particle]]) -> None:
+    def construct_routes(self, priority_matrix: Dict[Customer, List[Vehicle]]) -> None:
         not_assigned = []
         for customer, vehicles in priority_matrix.items():
             assigned = False
@@ -178,52 +177,25 @@ class PSO:
 
         print(f"Not Assigned: {len(not_assigned)}")
 
-    def __call__(self, customers: List[Customer]) -> None:
-        gbest = min(self.particles, key=lambda x: x.evaluate(cost_function(x.route)))
-        gbest_fitness = gbest.evaluate(cost_function(gbest.route))
-
-        for i in range(self.n_iters):
-            for particle in self.particles:
-                particle.load = 0
-                particle.route = []
-                particle.current_time = 0
-
-            customer_priority = self.get_customer_priority_list(customers) # n-dimention
-            priority_matrix = self.get_vehicle_priority_matrix(customer_priority) # 2m-dimention.
-
-            self.construct_routes(priority_matrix)
-
-            for idx, particle in enumerate(self.particles):
-                route = particle.order_route(DISTANCE_MATRIX)
-                fitness = particle.evaluate(cost_function(route))
-                if fitness < particle.evaluate_pbest(cost_function(route)):
-                    particle.pbest = particle.pos.copy()
-
-                if fitness < gbest_fitness:
-                    gbest = particle.copy()
-                    gbest_fitness = fitness
-
-            for idx, particle in enumerate(self.particles):
-                lbest = get_local_best(particle.route, self.particles, idx)
-                nbest = get_neighbor_best(particle.route, self.particles, idx)
-                particle.update_velocity(gbest, lbest, nbest)
-                particle.update_position()
-                particle.INERTIA = particle.INERTIA - ((particle.INERTIA - 0.4) * (i / self.n_iters))
-
-            print(f"Iteration {i + 1}/{self.n_iters}, Best Distance: {gbest.evaluate(cost_function(customers))}")
-
-        # Plot at end
-        _ = plt.figure(figsize=(20, 10))
-        plt.plot([c.lng for c in customers], [c.lat for c in customers], 'ro', color='red')
+    def __call__(self, customers: List[Customer]) -> Tuple[List[Customer], float]:
+        full_route = []
+        fitness = 0
         for particle in self.particles:
-            lng, lats = zip(*[(c.lng, c.lat) for c in [particle.depot] + particle.route + [particle.depot]])
-            plt.plot(lng, lats, '-o', alpha=0.3, label=particle.id)
-            plt.plot(particle.pos[0], particle.pos[1], 'go', color='green')
-            plt.arrow(particle.pos[0], particle.pos[1], particle.velocity[0], particle.velocity[1], color='green', width=0.3)
-        plt.plot(gbest.pos[0], gbest.pos[1], 'go', color='orange')
-        plt.legend()
-        plt.show()
+            particle.load = 0
+            particle.route = []
+            particle.current_time = 0
 
+        customer_priority = self.get_customer_priority_list(customers) # n-dimention
+        priority_matrix = self.get_vehicle_priority_matrix(customer_priority) # 2m-dimention.
+        self.construct_routes(priority_matrix)
+
+        for idx, particle in enumerate(self.particles):
+            route = particle.order_route(DISTANCE_MATRIX)
+            for r in route:
+                full_route.append(r)
+            fitness += particle.evaluate(cost_function(route))
+
+        return full_route, fitness
 
 def cost_function(customers: list[Customer]) -> Callable[[float, float], float]:
     def cost(x: float, y: float) -> float:
@@ -245,11 +217,11 @@ def get_distance_map(customers: list[Customer]) -> np.ndarray:
             distances[i, j] = calculate_distance(vi.lng, vj.lng, vi.lat, vj.lat)
     return distances
 
-def get_local_best(customers: List[Customer], particles: List[Particle], index, k=5) -> Particle:
+def get_local_best(customers: List[Customer], particles: List[Vehicle], index, k=5) -> Vehicle:
     neighbors = sorted(particles, key=lambda p: np.linalg.norm(particles[index].pos - p.pos))[:k]
     return min(neighbors, key=lambda p: p.evaluate(cost_function(customers)))
 
-def get_neighbor_best(customers: List[Customer], particles: List[Particle], index) -> Particle:
+def get_neighbor_best(customers: List[Customer], particles: List[Vehicle], index) -> Vehicle:
     particle = particles[index]
     fdr_scores = [
         (np.abs(p.evaluate_pbest(cost_function(customers)) - particle.evaluate(cost_function(customers)))
@@ -265,8 +237,9 @@ if __name__ == '__main__':
     DATA_PATH = os.path.join(os.path.dirname(__file__), 'data', 'processed', 'c101.csv')
     customers = pd.read_csv(DATA_PATH)
 
-    N_ITER = 1000
-    N_VEHICLES = 14
+    N_ITER = 150
+    N_VEHICLES = 15
+    N_PARTICLES = 50
     VEHICLE_CAPACITY = 200
     WIDTH, HEIGHT = get_search_space(customers)
 
@@ -283,5 +256,30 @@ if __name__ == '__main__':
             'avg_fitness': [],
             }
 
-    pso = PSO(N_VEHICLES, N_ITER, (WIDTH, HEIGHT), depot)
-    pso(customers)
+    gbest: Particle
+    gbest_fitness = float('inf')
+    gbest_route: List[Customer] = []
+    for i in range(N_ITER):
+        particles = [Particle(N_VEHICLES, (WIDTH, HEIGHT), depot) for _ in range(N_PARTICLES)]
+        for pso in particles:
+            route, fitness = pso(customers)
+            if fitness < gbest_fitness:
+                gbest = pso
+                gbest_fitness = fitness
+                gbest_route = route
+
+            for idx, particle in enumerate(pso.particles):
+                lbest = get_local_best(particle.route, pso.particles, idx)
+                nbest = get_neighbor_best(particle.route, pso.particles, idx)
+                particle.update_velocity(gbest.particles[idx], lbest, nbest)
+                particle.update_position()
+                particle.INERTIA = particle.INERTIA - ((particle.INERTIA - 0.4) * (i / N_ITER))
+
+        print(f"Iteration {i+1}/{N_ITER}, Best Fitness: {gbest_fitness}")
+
+    lngs, lats = zip(*[(c.lng, c.lat) for c in gbest_route])
+    v_lngs, v_lats = zip(*[(p.pos[0], p.pos[1]) for p in gbest.particles])
+    plt.plot(lngs, lats, '-o')
+    plt.plot(v_lngs, v_lats, 'o', color='blue')
+    plt.show()
+
