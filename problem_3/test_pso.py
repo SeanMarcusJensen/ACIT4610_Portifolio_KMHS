@@ -81,8 +81,11 @@ class Vehicle:
 
         elif arrival_time > due_time:
             self.time_violation += 1
+            self.current_time = arrival_time + customer.service_time
 
-        self.current_time = arrival_time + customer.service_time
+        else:
+            self.current_time = arrival_time + customer.service_time
+
         self.route.insert(index, customer)
 
     def distance_to_customer(self, customer: Customer) -> float:
@@ -311,7 +314,7 @@ if __name__ == '__main__':
 
     N_ITER = 150
     N_VEHICLES = 14
-    N_PARTICLES = 50
+    N_PARTICLES = 100
     VEHICLE_CAPACITY = 200
     WIDTH, HEIGHT = get_search_space(customers)
 
@@ -321,11 +324,11 @@ if __name__ == '__main__':
     DISTANCE_MATRIX = get_distance_map(customers)
     customers = customers[1:]
 
-    K = 5
+    K = 3
     W = 0.9
     CG = .5
-    CS = .5
-    CN = 1.
+    CS = 1.5
+    CN = 1.5
 
     gbest_particle: Particle
     gbest_fitness = float('inf')
