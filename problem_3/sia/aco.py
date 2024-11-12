@@ -1,8 +1,7 @@
 import random
-from typing import List, Optional, Tuple
-
 import numpy as np
 import pandas as pd
+from typing import List, Optional, Tuple
 
 from utils.matrix.distance_matrix import DistanceMatrix
 
@@ -27,12 +26,15 @@ class ACOParameters:
         self.pheromones *= (1 - self.evaporation_rate) # Pheromone evaporation
 
         for solution, total_cost, _ in solutions:
+            # Check for invalid solution
             if total_cost == 0 or total_cost == float('inf'):
                 continue
 
-            # Update pheromone levels for the edges that are used
+            # Update pheromone levels
             for i in range(len(solution) - 1):
                 current, next = solution[i], solution[i + 1]
+
+                # Update pheromone levels for the edges both ways
                 self.pheromones[current][next] += self.Q / total_cost
                 self.pheromones[next][current] += self.Q / total_cost
 
@@ -71,12 +73,10 @@ class Vehicle:
             penalty = 0
             if arrival_time < ready_time:
                 penalty = self.penalty_early
-            elif arrival_time > due_time:
-                penalty = self.penalty_late
 
             if demand <= self.max_capacity:
-                pheromone = pheromones[current_customer][next_customer] ** alpha
-                heuristic = (1 / (distances[current_customer][next_customer] + 1e-6)) ** beta
+                pheromone = pheromones[current_customer][next_customer] ** alpha # Calculate pheromone importance
+                heuristic = (1 / (distances[current_customer][next_customer] + 1e-6)) ** beta # Calculate cost importance
                 probability = pheromone * heuristic / (1 + penalty) # Add penalty to probability calculation if necessary
                 probabilities.append((next_customer, probability))
                 total_probability += probability
@@ -85,7 +85,7 @@ class Vehicle:
             return None
 
         # Normalize probabilities
-        probabilities = [(customer, prob / total_probability) for customer, prob in probabilities]
+        probabilities = [(customer, probability / total_probability) for customer, probability in probabilities]
         
         # Select next customer based on cumulative probabilities (roulette wheel selection)
         rand_val = random.random()
@@ -133,7 +133,7 @@ class ACO:
         time_window_violations = 0
 
         while unvisited_customers:
-            # Filter feasible customers based on current capacity and arrival time
+            # Filter feasible customers based on current capacity and due time
             feasible_customers = {
                 customer for customer in unvisited_customers 
                 if self.demands[customer] <= current_capacity and
@@ -141,7 +141,8 @@ class ACO:
             }
 
             if not feasible_customers:
-                break # Return to depot if no feasible customers
+                # Return to depot if no feasible customers
+                break
 
             next_customer = vehicle.select_next_customer(
                 self.aco_params.pheromones, self.distances, current_customer, feasible_customers,
@@ -149,7 +150,8 @@ class ACO:
             )
 
             if next_customer is None:
-                break # Return to depot if no next_customer are left
+                # Return to depot if no next customer remains
+                break
 
             travel_time = self.distances[current_customer][next_customer]
             arrival_time = current_time + travel_time
@@ -161,20 +163,12 @@ class ACO:
                 current_time = ready_time + self.service_times[next_customer]
                 total_penalty += vehicle.penalty_early
                 time_window_violations += 1
-                current_capacity -= self.demands[next_customer] # Update capacity after service
+                current_capacity -= self.demands[next_customer]
                 solution.append(next_customer)
                 current_customer = next_customer
                 unvisited_customers.remove(next_customer)
                 print(f"Early violation at {next_customer}, current penalty {total_penalty}")
                 print(f"Remaining capacity {current_capacity}, unvisited customers: {unvisited_customers}")
-
-            elif arrival_time > due_time:
-                total_penalty += vehicle.penalty_late
-                time_window_violations += 1
-                unvisited_customers.remove(next_customer)
-                print(f"Late violation at {next_customer}, current penalty {total_penalty}")
-                print(f"Remaining capacity {current_capacity}, unvisited customers: {unvisited_customers}")
-                continue
 
             else:
                 current_time = arrival_time + self.service_times[next_customer]
@@ -187,13 +181,14 @@ class ACO:
 
             # Check if the remaining capacity can serve any unvisited customer
             if current_capacity < min([self.demands[customer] for customer in unvisited_customers], default=0):
-                break # Return to depot if vehicle can't serve any of the next customer
+                # Return to depot if vehicle can't serve any of the next customers
+                break 
 
-        solution.append(0) # Return to the depot (Customer 0)
+        # Return to the depot
+        solution.append(0) 
 
-        # Calculate the total distance for the constructed route
+        # Calculate the total cost for the constructed route
         total_distance = sum(self.distances[solution[i]][solution[i + 1]] for i in range(len(solution) - 1))
-
         total_cost = total_distance + total_penalty
         
         print(f"Route completed with {time_window_violations} violations")
@@ -207,7 +202,7 @@ class ACO:
         all_customers_visited = []
         total_distances = [] # Total distances per iteration
 
-        best_iteration_index = None
+        best_iteration_index = None # Index of the iteration that performed best
         max_customers_visited = 0
         min_total_distance = float('inf')
         
@@ -222,10 +217,10 @@ class ACO:
             unvisited_customers = set(range(1, self.n_locations)) # All customers (excluding the depot)
             
             for j in range(self.n_vehicles):
-                print(f"VEHICLE {j + 1}")
                 if not unvisited_customers:
                     break
                 
+                print(f"VEHICLE {j + 1}")
                 vehicle = Vehicle(self.max_capacity)
                 solution, total_cost, remaining_capacity, violation = self.construct_solution(vehicle, unvisited_customers)
                 
