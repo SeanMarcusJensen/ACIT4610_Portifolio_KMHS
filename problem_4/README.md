@@ -2,16 +2,28 @@
 
 ---
 
-## How to run
+## How to Run
 
-All the agents are pre-run / trained. You can find all their weights in the folder `static/weights`. However, If you want to run the training loop yourself, proceed to run the `train.py` file at the root of `problem_4`. Make sure to have the Python environment with the required packages installed activated in the terminal before running. This will train all the agents and save a copy of the metrics, weights and a movie-clip of 2 episodes in the static folder. These files are then presented in the `main.ipynb` file.
+The project is in the `main.ipynb` file. This is a Jupyter Notebook which holds markdown text explaining the environment and python code for showcasing the project with graphs, tables etc.
+All agents can be ran inside the `main.ipynb` file and at the bottom of the file is the code for training the agents. Do note that all agents are pre-trained with weights stored in `static/weights`. This is also where the `csv` files for hyperparameter tuning is stored.
 
-If you do not want to run the models yourself, especially the deep-q-network ( which takes a lot of time ), proceed to open the `main.ipynb` file. The rest of the documentation should be described in markdown there.
+The reason that all agents are pre-trained is because the Deep Q-Network Agent takes a very long time to train, even on a very good GPU: the computer specs on which the models are trained is in the top of the `main.ipynb` file. This matters because we do compare time per episode for each agent, and every agent except Deep Q runs on the CPU. Thus, time differences may vary, and especially if the reader do train the agents them self and then do the analysis again.
 
-**NOTE: Computer Specs:**
-The deep-q-model are run on a NVIDIA 4080 with over 10_000 cuda cores.
+As mentioned, we do hyperparameter tuning, this script is `find_hyperparameters.py` and saves the output in `static/weights`. If you do want to run a tune yourself, execute `python tune_hyperparameters.py` -> **NOTE**: This will `pip install optuna` if you do not already have it installed.
 
-CPU: AMD Ryzen 9 3XD - Mhz....
+**NOTE**: To run the agents and the notebooks yourself, some libraries are required:
 
-These specs is important in the analysis of the elapsed time for each episode.
+You can see them all in the `requirements.txt` file, and install them by `pip install -r requirements.txt`. [Please be inside a python environment]
+
+- Numpy
+- Pandas
+- Matplotlib
+- Gymnasium[toy-text]
+- Tensorflow
+
+For training on the gpu:
+- Tensorflow[and-cuda]
+
+For parametertuning:
+- Optuna [only downloaded when running hyperparam file.]
 
