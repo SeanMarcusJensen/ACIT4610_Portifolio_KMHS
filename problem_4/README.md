@@ -4,14 +4,20 @@
 
 ## How to run
 
-All the agents are pre-run / trained. You can find all their weights in the folder `static/weights`. However, If you want to run the training loop yourself, proceed to run the `train.py` file at the root of `problem_4`. Make sure to have the Python environment with the required packages installed activated in the terminal before running. This will train all the agents and save a copy of the metrics, weights and a movie-clip of 2 episodes in the static folder. These files are then presented in the `main.ipynb` file.
+All the agents are pre-run / trained. You can find all their weights in the folder `static/weights`.
+The parameters of the models are found though the script `utils/parameter_tuner.py`. If you want to find the best parameters again then you're free to run this script by `python -m utils.parameter_tuner`.
 
-If you do not want to run the models yourself, especially the deep-q-network ( which takes a lot of time ), proceed to open the `main.ipynb` file. The rest of the documentation should be described in markdown there.
+The notebook `main.ipynb` contains all the code for running the agent live, visualizing the metrics, and even training the agents again; The training process is placed at the bottom of the notebook to allow the reader to quickly read and see the agents in action.
+This is also because some of the agents take a really long time to train, and to not force the reader to invest much time or money in GPUS.
 
-**NOTE: Computer Specs:**
-The deep-q-model are run on a NVIDIA 4080 with over 10_000 cuda cores.
+**NOTE**: To run the agents and the notebooks yourself, some libraries are required:
 
-CPU: AMD Ryzen 9 3XD - Mhz....
+You can see them all in the `requirements.txt` file, and install them by `pip install -r requirements.txt`. [Please be inside a python environment]
 
-These specs is important in the analysis of the elapsed time for each episode.
-
+- Numpy
+- Pandas
+- Tensorflow[and-cuda]
+- Matplotlib
+- Optuna
+- Gymnasium
+- Pillow

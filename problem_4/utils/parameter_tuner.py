@@ -27,7 +27,6 @@ def find_best_parameters(callable, n_trials=200, plot=False):
     def create_objective(callable):
 
         def objective(trial):
-
             epsilon_decay = trial.suggest_float('epsilon_decay', 0.8, 0.999)
             learning_rate = trial.suggest_float('learning_rate', 0.1, 0.8)
             discount_factor = trial.suggest_float('discount_factor', 0.1, 0.99)
@@ -99,5 +98,3 @@ if __name__ == '__main__':
 
     q_metrics.to_csv('static/metrics/basic_tune_metrics.csv', index=False)
     s_metrics.to_csv('static/metrics/sarsa_tune_metrics.csv', index=False)
-
-
