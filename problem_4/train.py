@@ -1,7 +1,6 @@
 import agents
 from utils import EpsilonGreedy, create_progress_tracker
 
-
 def train(EPISODES: int, R_EPS: int = 3) -> None:
     random_policy = agents.RandomPolicyAgent()
     metrics = random_policy.train(
