@@ -45,7 +45,7 @@ class TaxiAgent(ABC):
         self._env.close()
         return metrics
 
-    def watch(self, n_episodes: int, step_limit_per_episode: int) -> AgentMetrics:
+    def watch(self, n_episodes: int, step_limit_per_episode: int, mode: str = 'human') -> AgentMetrics:
         """ A method to watch the agent play the game without training.
 
         Args:
@@ -57,7 +57,7 @@ class TaxiAgent(ABC):
         """
         self._load()
         self._env.close()
-        self._env = gym.make("Taxi-v3", render_mode="human")
+        self._env = gym.make("Taxi-v3", render_mode=mode)
         metrics = self.__run(
             n_episodes, step_limit_per_episode, is_training=False)
         self._env.close()

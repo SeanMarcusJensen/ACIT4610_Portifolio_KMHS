@@ -2,13 +2,14 @@
 
 ---
 
-## How to run
+## How to Run
 
-All the agents are pre-run / trained. You can find all their weights in the folder `static/weights`.
-The parameters of the models are found though the script `utils/parameter_tuner.py`. If you want to find the best parameters again then you're free to run this script by `python -m utils.parameter_tuner`.
+The project is in the `main.ipynb` file. This is a Jupyter Notebook which holds markdown text explaining the environment and python code for showcasing the project with graphs, tables etc.
+All agents can be ran inside the `main.ipynb` file and at the bottom of the file is the code for training the agents. Do note that all agents are pre-trained with weights stored in `static/weights`. This is also where the `csv` files for hyperparameter tuning is stored.
 
-The notebook `main.ipynb` contains all the code for running the agent live, visualizing the metrics, and even training the agents again; The training process is placed at the bottom of the notebook to allow the reader to quickly read and see the agents in action.
-This is also because some of the agents take a really long time to train, and to not force the reader to invest much time or money in GPUS.
+The reason that all agents are pre-trained is because the Deep Q-Network Agent takes a very long time to train, even on a very good GPU: the computer specs on which the models are trained is in the top of the `main.ipynb` file. This matters because we do compare time per episode for each agent, and every agent except Deep Q runs on the CPU. Thus, time differences may vary, and especially if the reader do train the agents them self and then do the analysis again.
+
+As mentioned, we do hyperparameter tuning, this script is `find_hyperparameters.py` and saves the output in `static/weights`. If you do want to run a tune yourself, execute `python tune_hyperparameters.py` -> **NOTE**: This will `pip install optuna` if you do not already have it installed.
 
 **NOTE**: To run the agents and the notebooks yourself, some libraries are required:
 
@@ -16,8 +17,13 @@ You can see them all in the `requirements.txt` file, and install them by `pip in
 
 - Numpy
 - Pandas
-- Tensorflow[and-cuda]
 - Matplotlib
-- Optuna
-- Gymnasium
-- Pillow
+- Gymnasium[toy-text]
+- Tensorflow
+
+For training on the gpu:
+- Tensorflow[and-cuda]
+
+For parametertuning:
+- Optuna [only downloaded when running hyperparam file.]
+
