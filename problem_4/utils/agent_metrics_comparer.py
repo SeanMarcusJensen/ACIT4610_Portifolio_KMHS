@@ -23,7 +23,7 @@ class AgentMetricsComparer:
 
     def plot_metric(self, key, window: int = 50, fig_size: tuple[int, int] = (15, 6)):
         self.plot(self[key], window, key, fig_size)
-    
+
     @staticmethod
     def plot(data, window: int = 50, name: str | None = None, fig_size: tuple[int, int] = (15, 6)):
         # Ensure all data series are of the same length
