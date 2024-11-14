@@ -42,16 +42,16 @@ if __name__ == '__main__':
 
             def objective(trial):
                 epsilon_decay = trial.suggest_float(
-                    'epsilon_decay', 0.8, 0.999)
-                learning_rate = trial.suggest_float('learning_rate', 0.1, 0.8)
+                    'epsilon_decay', 0.995, 0.999)
+                learning_rate = trial.suggest_float('learning_rate', 0.1, 0.9)
                 discount_factor = trial.suggest_float(
-                    'discount_factor', 0.1, 0.99)
+                    'discount_factor', 0.2, 0.99)
 
                 epsilon = EpsilonGreedy(1.0, epsilon_decay, 0.0)
                 agent = callable(epsilon, learning_rate, discount_factor)
 
                 metrics = agent.train(
-                    n_episodes=1500, step_limit_per_episode=400)
+                    n_episodes=2500, step_limit_per_episode=200)
                 metric_list.append(metrics)
 
                 score = np.mean(metrics.episode_rewards)
@@ -99,12 +99,12 @@ if __name__ == '__main__':
 
     agent = BasicQAgent(EpsilonGreedy(1.0, study_q['epsilon_decay'], 0.0),
                         study_q['learning_rate'], study_q['discount_factor'])
-    metrics = agent.train(n_episodes=1500, step_limit_per_episode=400)
+    metrics = agent.train(n_episodes=2500, step_limit_per_episode=200)
     metrics.save('static/metrics/basic.csv')
 
     agent = SarsaAgent(EpsilonGreedy(1.0, study_s['epsilon_decay'], 0.0),
                        study_s['learning_rate'], study_s['discount_factor'])
-    metrics = agent.train(n_episodes=1500, step_limit_per_episode=400)
+    metrics = agent.train(n_episodes=2500, step_limit_per_episode=200)
     metrics.save('static/metrics/sarsa.csv')
 
     q_metrics = pd.DataFrame(q_metrics)

@@ -25,6 +25,7 @@ class TaxiAgent(ABC):
             "pickup": 4,
             "dropoff": 5}
         self._locations = [(0, 0), (0, 4), (4, 0), (4, 3)]  # R, G, Y, B
+        self.__action: int | None = None
 
     def train(self, n_episodes: int, step_limit_per_episode: int, on_episode_do: Callable[[int, int], None] = lambda x, y: None) -> AgentMetrics:
         """ A method to train the agent.
@@ -101,8 +102,8 @@ class TaxiAgent(ABC):
             episode_steps = 0
             for _ in range(step_limit_per_episode):
 
-                if is_training and self._epsilon.should_be_random:
-                    action = self._env.action_space.sample()
+                if is_training:
+                    action = self._training_action(state)
                 else:
                     action = self._get_action(state)
 
@@ -127,6 +128,22 @@ class TaxiAgent(ABC):
             on_episode_do(episode, n_episodes)
 
         return metrics
+
+    def _training_action(self, state: int, persist: bool = False) -> int:
+        if not persist and self.__action is not None:
+            action = self.__action
+            self.__action = None
+            return action
+
+        if self._epsilon.should_be_random:
+            action = self._env.action_space.sample()
+        else:
+            action = self._get_action(state)
+
+        if persist:
+            self.__action = action
+
+        return action
 
     @abstractmethod
     def _load(self) -> None:
