@@ -1,6 +1,7 @@
 import numpy as np
 from mutations.abstraction import Mutator
 
+
 class Individual:
     """Represents an individual with 'Real Numbered Continuous Representation' in the Evolutionary Algorithm.
 
@@ -9,11 +10,12 @@ class Individual:
         mutator (Mutator): The mutator used to apply mutations to the chromosome.
         fitness (float): The fitness score of the individual.
     """
+
     def __init__(self, chromosome: np.ndarray, mutator: Mutator) -> None:
         self.chromosome = chromosome
         self.mutator = mutator
         self.fitness = 0.0
-    
+
     def set_fitness(self, value: float) -> None:
         self.fitness = value
 
@@ -35,10 +37,12 @@ class Individual:
         self.chromosome = self.__normalize_chromosome(self.chromosome)
         self.set_fitness(0.0)
         return self
-    
+
     def copy(self) -> 'Individual':
-        return Individual(self.chromosome.copy(), self.mutator.copy())
-    
+        ind = Individual(self.chromosome.copy(), self.mutator.copy())
+        ind.fitness = self.fitness
+        return ind
+
     @staticmethod
     def __normalize_chromosome(chromosome: np.ndarray) -> np.ndarray:
         """Normalizes the chromosome so that its elements are scaled to sum to 1.
@@ -59,7 +63,7 @@ class Individual:
         if sum > 0:
             return chromosome / sum
         return np.zeros_like(chromosome)
-    
+
     def normalize_chromosome(self) -> 'Individual':
         self.chromosome = self.__normalize_chromosome(self.chromosome)
         return self
