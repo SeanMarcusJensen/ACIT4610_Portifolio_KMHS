@@ -22,8 +22,9 @@ You can see them all in the `requirements.txt` file, and install them by `pip in
 - Tensorflow
 
 For training on the gpu:
+
 - Tensorflow[and-cuda]
 
 For parametertuning:
-- Optuna [only downloaded when running hyperparam file.]
 
+- Optuna [only downloaded when running hyperparam file.]
