@@ -8,6 +8,7 @@ from recombinators.abstraction import Recombinator
 from selections.abstraction import Selector
 from utils.logger import Logger
 
+
 class Strategy:
     """Represents a strategy for optimizing individuals in an EA.
 
@@ -17,6 +18,7 @@ class Strategy:
         selector (Selector): A selection mechanism for choosing individuals from the population.
         recombinator (Recombinator): A recombination mechanism for creating offspring from the population.
     """
+
     def __init__(self,
                  mutator_factory: MutatorFactory,
                  fitness_evaluator: FitnessEvaluator,
@@ -35,12 +37,13 @@ class Strategy:
             offsprings = [ind.mutate() for ind in offsprings]
 
             for i in offsprings:
-                i.set_fitness(self.fitness_evaluator.evaluate(i)) # evaluate
+                i.set_fitness(self.fitness_evaluator.evaluate(i))  # evaluate
 
-            population = self.selector.select(parents=population, offsprings=offsprings)
+            population = self.selector.select(
+                parents=population, offsprings=offsprings)
 
             logger.info(generation=generation, population=population)
-        
+
         return population
 
     def __create_initial_population(self, n_genes: int, n_population: int) -> List[Individual]:
@@ -51,4 +54,3 @@ class Strategy:
         individual = Individual(chromosome, self.mutator_factory.create())
         individual.set_fitness(self.fitness_evaluator.evaluate(individual))
         return individual
-    
